@@ -1,0 +1,52 @@
+[
+  {
+    "id": "sql_1",
+    "question": "query = \"SELECT * FROM users WHERE name = '\" + user_input + \"'\"\n# Objetivo: Bypassear autenticación sin contraseña.",
+    "options": [
+      "admin",
+      "admin' OR '1'='1",
+      "DROP TABLE users"
+    ],
+    "correctIndex": 1
+  },
+  {
+    "id": "sql_2",
+    "question": "cursor.execute(\"SELECT * FROM items WHERE id = %s\", (item_id,))\n# ¿Es este código vulnerable a SQL Injection?",
+    "options": [
+      "Sí, totalmente.",
+      "No, usa parámetros parametrizados.",
+      "Solo si item_id es texto."
+    ],
+    "correctIndex": 1
+  },
+  {
+    "id": "py_1",
+    "question": "eval(user_input)\n# ¿Por qué es peligrosa esta función en Python?",
+    "options": [
+      "Es muy lenta.",
+      "Ejecuta código arbitrario del sistema.",
+      "No soporta strings vacíos."
+    ],
+    "correctIndex": 1
+  },
+  {
+    "id": "sql_3",
+    "question": "# Entrada maliciosa para cerrar un string y comentar el resto:\nuser_input = ?",
+    "options": [
+      "admin; --",
+      "admin' #",
+      "admin //"
+    ],
+    "correctIndex": 1
+  },
+  {
+    "id": "xss_1",
+    "question": "return render_template_string(user_input)\n# ¿Qué vulnerabilidad introduce esto en Flask?",
+    "options": [
+      "SQL Injection",
+      "Server-Side Template Injection (SSTI)",
+      "Buffer Overflow"
+    ],
+    "correctIndex": 1
+  }
+]

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Cargando Sistema...</title>
+  <style>
+    @font-face {
+      font-family: 'Orbitron';
+      font-style: normal;
+      font-weight: 700;
+      src: url('assets/fonts/orbitron.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'Roboto Mono';
+      font-style: normal;
+      font-weight: 300 500;
+      src: url('assets/fonts/robotomono.woff2') format('woff2');
+    }
+    
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: transparent;
+      font-family: 'Roboto Mono', monospace;
+      user-select: none;
+      -webkit-app-region: drag; /* Permite arrastrar la ventana de carga */
+    }
+
+    .splash-container {
+      width: calc(100% - 20px);
+      height: calc(100% - 20px);
+      margin: 10px;
+      background: #080808; /* Fondo negro sólido plano del juego */
+      border: 1px solid rgba(249, 115, 22, 0.3);
+      border-radius: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      box-sizing: border-box;
+      position: relative;
+    }
+
+    /* Cargador Circular Radiante */
+    .loader-ring {
+      width: 80px;
+      height: 80px;
+      border: 3px solid rgba(249, 115, 22, 0.1);
+      border-top: 3px solid #f97316;
+      border-radius: 50%;
+      animation: spin 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+      margin-bottom: 30px;
+      position: relative;
+    }
+
+    .loader-ring::after {
+      content: '';
+      position: absolute;
+      top: 5px;
+      left: 5px;
+      right: 5px;
+      bottom: 5px;
+      border: 2px solid transparent;
+      border-bottom: 2px solid #ea580c;
+      border-radius: 50%;
+      animation: spin-reverse 2.4s linear infinite;
+      opacity: 0.6;
+    }
+
+    /* Título con resplandor (Bloom) */
+    .title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 26px;
+      font-weight: 700;
+      color: #ffffff;
+      letter-spacing: 5px;
+      margin-bottom: 8px;
+      text-shadow: 0 0 8px rgba(255, 255, 255, 0.3), 0 0 15px rgba(249, 115, 22, 0.4);
+      z-index: 1;
+    }
+
+    .status-text {
+      font-size: 10px;
+      color: #f97316;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      animation: pulse 1.5s infinite ease-in-out;
+      z-index: 1;
+      text-shadow: 0 0 5px rgba(249, 115, 22, 0.3);
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    @keyframes spin-reverse {
+      0% { transform: rotate(360deg); }
+      100% { transform: rotate(0deg); }
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.6; }
+      50% { opacity: 1; filter: drop-shadow(0 0 2px rgba(249, 115, 22, 0.5)); }
+    }
+  </style>
+</head>
+<body>
+  <div class="splash-container">
+    <div class="loader-ring"></div>
+    <div class="title">ZERO-DAY PROTOCOL</div>
+    <div class="status-text">Inicializando sistema...</div>
+  </div>
+</body>
+</html>

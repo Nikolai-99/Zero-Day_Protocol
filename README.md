@@ -1,4 +1,4 @@
-# Zero-Day Protocol 🕶️⚡
+# Zero-Day Protocol
 
 **Zero-Day Protocol** es un videojuego de acción y disparos en primera persona (FPS) en 3D con temática cyberpunk de hackeo. Combina puntería inmersiva en primera persona con la agilidad clásica de movimientos arcade, envuelto en una estética procedural neón con postprocesado de brillos (Bloom) de alta fidelidad.
 

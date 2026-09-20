@@ -302,7 +302,7 @@ Para ejecutar todos los servicios en sintonía y de forma 100% automatizada:
 
 ---
 
-## 🔌 Arquitectura de Ejecución 100% Offline (Zero-Network)
+## 🔌 Arquitectura de Ejecución Offline
 
 El juego está completamente autonomizado para funcionar en ordenadores **sin acceso a internet**:
 
@@ -330,7 +330,7 @@ El juego está completamente autonomizado para funcionar en ordenadores **sin ac
 * **Espacio**: Disparar proyectiles láser de alta velocidad.
 * **Alt+Tab / Click Fuera**: Libera automáticamente el cursor del mouse. Al morir o ganar, el puntero se libera inmediatamente para poder interactuar con los menús de reinicio.
 
-### 🎮 Modos de Juego y Mecánicas de IA
+### 🎮 Modos de Juego
 El juego se divide en tres modos con comportamiento de dificultad diferenciado:
 
 * **Normal Mode**:

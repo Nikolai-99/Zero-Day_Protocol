@@ -1,21 +1,14 @@
 # Propuesta Arquitectónica: Sistema de Mejoras y Ciber-Buffs (Roguelike)
 
-**Proyecto:** Zero-Day Protocol  
-**Módulo:** PRO402 - Taller de Testing y Calidad de Software  
-**Fecha:** Septiembre 2026  
-**Estado:** Documento de Diseño y Análisis (Pre-integración)
-
----
-
 ## 1. Resumen Ejecutivo
 El presente documento formaliza la propuesta de diseño para integrar una mecánica de progresión tipo *roguelike* (inspirada en *Vampire Survivors*) a **Zero-Day Protocol**. 
 
-Aunque la mecánica no se encuentra actualmente activa en el bucle principal de renderizado 3D para priorizar la estabilidad de la Evaluación Parcial 1 (EP1), este diseño establece la arquitectura matemática, las reglas de negocio de dominio y la estrategia de verificación en tres niveles para su posterior despliegue en la EP2 y Evaluación Final.
+Aunque la mecánica no se encuentra actualmente activa en el bucle principal de renderizado 3D para priorizar la estabilidad de la Evaluación Parcial 1 (EP1)
 
 ---
 
-## 2. Concepto Lúdico: Los "Protocolos de Kernel"
-Al superar una oleada de virus o completar exitosamente un minijuego de inyección de código (*Hacking Quiz*), el operador recibe una interrupción de sistema que le presenta una selección aleatoria de tres mejoras de software (*Ciber-Buffs*).
+## 2. Ejemplo conceptual: Los "Protocolos de Kernel"
+Al superar una oleada de virus o completar exitosamente un minijuego de inyección de código (*Hacking Quiz*), el operador recibe una interrupción de sistema que le presenta una selección aleatoria de tres mejoras de software (*Ciber-Buffs*). 
 
 ### Catálogo Inicial de Protocolos:
 1. **Overclock de Hilos (`THREAD_OVERCLOCK`):** Aumenta la cadencia de fuego reduciendo el intervalo entre disparos en un 15% por nivel.
@@ -53,32 +46,3 @@ Se define la evolución de protocolos cuando se cumplen condiciones compuestas s
 * Si el operador comete errores o requiere asistencia de pistas, la selección se limita a rarezas **Común** y **Rara**.
 
 ---
-
-## 4. Cobertura de Requisitos para las Evaluaciones de PRO402
-
-### Para la Evaluación Parcial 1 (EP1): Línea Base
-* **Lógica Pura:** El subsistema se implementa en Python en `backend/services/buff_system.py` con tipos estrictos, sin dependencias externas.
-* **Sensibilidad a Mutantes:** Pruebas unitarias en `pytest` que verifican bordes estrictos (`tier == 5`, `cooldown >= 30`). Si un agente evaluador muta un `>=` por `>`, la prueba falla inmediatamente evidenciando cobertura real.
-
-### Para la Evaluación Parcial 2 (EP2): Casos Diseñados y Suite en 3 Niveles
-* **Técnicas Formales (`DISENO-DE-CASOS.md`):**
-  * *Partición de Equivalencia:* Tiers no adquiridos (0), en progreso (1..4), maximizados (5), inválidos (>5).
-  * *Análisis de Valores Límite:* Cooldowns en 29ms, 30ms, 31ms; escudos en 4, 5, 6; rerolls en 0 y 1.
-  * *Tablas de Decisión:* Matriz de 8 combinaciones booleanas para la evolución "Zero-Day Overdrive".
-* **Integración API (FastAPI):**
-  * `POST /api/buffs/roll` (obtener 3 opciones basadas en estado del jugador).
-  * `POST /api/buffs/select` (aplicar protocolo, validar elegibilidad y deducir rerolls).
-* **Extremo a Extremo (Playwright):**
-  * Simulación E2E de victoria de oleada 1, aparición de la ventana modal de selección de cartas, clic sobre una mejora y verificación de que el estado en la interfaz se actualiza correctamente.
-
-### Para la Evaluación Final: Pipeline CI y Pruebas No Funcionales
-* **Rendimiento:** Medición de latencia en la resolución de tiradas de buffs con umbral $< 15\text{ ms}$.
-* **Seguridad:** Validación rigurosa en FastAPI y Pydantic para evitar inyecciones de identificadores de mejora no autorizados o fuera de catálogo.
-* **CI/CD:** Pipeline automatizado en GitHub Actions ejecutando la suite completa ante cada *push*.
-
----
-
-## 5. Plan de Integración Futura
-1. **Fase 1 (Actual):** Consolidación de la línea base con las 4 reglas troncales del juego (Combate, Score, Hacking y Ranking) para aprobar EP1.
-2. **Fase 2 (EP2):** Activación de los endpoints en FastAPI y conexión de la UI modal en React/Vite para pruebas de integración y Playwright.
-3. **Fase 3 (Final):** Inclusión en el pipeline de GitHub Actions y auditoría de pruebas no funcionales.

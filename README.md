@@ -2,9 +2,12 @@
 
 **Zero-Day Protocol** es un videojuego de acción y disparos en primera persona (FPS) en 3D con temática cyberpunk. Combina puntería inmersiva en primera persona con la agilidad clásica de juegos arcade, envuelto en una estética de postprocesado (Bloom).
 
+
+
 <p align="center">
       <img src="assets/screenshot_and_gif/zero-day-protocol.gif" alt="Zero-Day Protocol Gameplay" width="432" />
 </p>
+
 
 ---
 

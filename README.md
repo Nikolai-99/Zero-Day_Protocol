@@ -13,7 +13,7 @@
 
 ## 🚀 Guía de Inicio Rápido y Ejecución
 
-Esta sección proporciona las instrucciones exactas para que cualquier evaluador o desarrollador clone, instale y ejecute el proyecto y sus controles de calidad de forma 100% reproducible y sin fricciones.
+Esta sección proporciona las instrucciones exactas para que cualquier evaluador o desarrollador clone, instale y ejecute el proyecto.
 
 ### 📋 Consideraciones Previas para Iniciar el Proyecto
 
@@ -34,9 +34,7 @@ Antes de iniciar la ejecución, asegúrese de verificar los siguientes puntos:
 
 ---
 
-### 💻 Método 1: Vía Comandos Nativos Documentados (Estándar Académico con `uv`)
-
-Este es el flujo oficial paso a paso para evaluación docente, integración continua y ejecución granular de controles:
+### 💻 Método 1: Vía Comandos Nativos Documentados (Estándar de `uv`)
 
 #### Paso 1: Clonar el repositorio y posicionarse en la carpeta
 ```bash
@@ -180,7 +178,7 @@ Zero-Day_Protocol/
 
 ---
 
-## 📋 Reglas de Negocio Implementadas (Evaluación Práctica 1)
+## 📋 Reglas de Negocio Implementadas (Evaluación Práctica 1 AIEP - TALLER DE TESTING)
 
 El dominio del sistema concentra **cinco reglas de negocio troncales** implementadas en Python puro, fuertemente tipado e inmutable (`@dataclass(frozen=True)`), ubicadas en [`backend/services/game_rules.py`](backend/services/game_rules.py) y expuestas vía API REST en [`backend/routers/rules.py`](backend/routers/rules.py):
 

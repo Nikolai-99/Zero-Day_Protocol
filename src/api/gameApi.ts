@@ -1,7 +1,7 @@
 import { QuizQuestion, ScoreData, UserStatsData } from '../types';
 import fallbackQuestions from '../constants/questions';
 
-const API_BASE = 'http://localhost:8000/api';
+const API_BASE = 'http://127.0.0.1:8000/api';
 
 export const gameApi = {
   async checkHealth(): Promise<boolean> {

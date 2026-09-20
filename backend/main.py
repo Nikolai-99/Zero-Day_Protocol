@@ -53,6 +53,9 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:3000",  # Vite Dev Server
+        "http://127.0.0.1:3000",  # Vite Dev Server (IPv4 directo)
+        "http://localhost:8000",  # FastAPI Docs / Swagger
+        "http://127.0.0.1:8000",  # FastAPI Docs / Swagger (IPv4 directo)
         "tauri://localhost",  # Tauri
         "https://tauri.localhost",  # Tauri macOS
     ],

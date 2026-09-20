@@ -417,3 +417,22 @@ Dado que la aplicación de producción ahora conserva el caché de sombreadores 
 1. **Desactivar Caché en DevTools**: Abre las DevTools (se abren automáticamente en Modo Dev), ve a la pestaña **Network** y activa la opción **Disable Cache** mientras las herramientas estén abiertas.
 2. **Hard Reload**: Presiona `Ctrl + F5` o `Ctrl + Shift + R` dentro de la ventana de desarrollo del juego.
 3. **Launcher Automatizado**: El archivo launcher [run_dev.bat](file:///C:/Users/Felip/Escritorio/Zero-Day_Protocol/run_dev.bat) sigue borrando de manera automática el caché en la carpeta temporal de desarrollo `%APPDATA%\zero_day_protocol` antes de cada inicio.
+
+---
+
+## 📄 Licencia y Atribución
+
+Este proyecto ha sido concebido con fines puramente **educativos y experimentales**, con el objetivo de investigar y poner a prueba el potencial del entorno **Electron** combinado con tecnologías web modernas (**WebGL, Three.js, React Three Fiber y FastAPI**) para el desarrollo de videojuegos de escritorio con renderizado 3D en tiempo real y arquitectura de alto rendimiento.
+
+### 🔓 Libertad de Uso y Modificación
+Cualquier persona, estudiante o desarrollador que clone o descargue este repositorio tiene plena libertad para:
+- Estudiar, ejecutar y experimentar con la base de código.
+- Modificar, extender, refactorizar o adaptar cualquier componente (mecánicas de combate, shaders, motor de colisiones, interfaz o backend).
+- Utilizar este proyecto como referencia técnica o base para nuevas creaciones y prototipos de juegos.
+
+### 🏷️ Términos de Atribución
+El uso y modificación de este repositorio se concede bajo la condición de realizar la **correcta atribución de autoría**:
+- Conservar los créditos originales correspondientes al autor del proyecto (**Nikolai-99**).
+- Incluir un enlace al repositorio original ([`https://github.com/Nikolai-99/Zero-Day_Protocol`](https://github.com/Nikolai-99/Zero-Day_Protocol)) en bifurcaciones (*forks*), proyectos derivados o publicaciones donde se reutilice total o parcialmente este trabajo.
+- Respetar los términos de licenciamiento de los recursos y dependencias de terceros incluidos (SIL Open Font License 1.1, Apache 2.0 y MIT), documentados detalladamente en [`assets/DOCUMENTACION_ASSETS.md`](assets/DOCUMENTACION_ASSETS.md).
+

@@ -2,9 +2,6 @@
 
 ## 1. Resumen Ejecutivo
 El presente documento formaliza la propuesta de diseño para integrar una mecánica de progresión tipo *roguelike* (inspirada en *Vampire Survivors*) a **Zero-Day Protocol**. 
-
-Aunque la mecánica no se encuentra actualmente activa en el bucle principal de renderizado 3D para priorizar la estabilidad de la Evaluación Parcial 1 (EP1)
-
 ---
 
 ## 2. Ejemplo conceptual: Los "Protocolos de Kernel"

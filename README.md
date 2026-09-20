@@ -5,7 +5,7 @@
 
 
 <p align="center">
-      <img src="assets/screenshot_and_gif/zero-day-protocol.gif" alt="Zero-Day Protocol Gameplay" width="432" />
+      <img src="assets/screenshot_and_gif/zero-day-protocol.gif" alt="Zero-Day Protocol Gameplay" width="320" />
 </p>
 
 

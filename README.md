@@ -185,7 +185,7 @@ El dominio del sistema concentra **cinco reglas de negocio troncales** implement
 ### 1. Resolución de Combate y Mitigación de Daño (`CombatRules`)
 - **Modo NORMAL:** La vida del jugador se reduce por el daño recibido. La regla establece un **límite inferior estricto en 0** (`max(0, current_hp - damage)`). Si la vida llega a 0, la partida finaliza inmediatamente marcando `is_game_over=True`.
   - *Corrección de defecto histórico:* Se erradicó el bug donde la vida caía a valores negativos (`-10`, `-20`, etc.) sin finalizar la partida, cubierto formalmente mediante pruebas de regresión.
-- **Modos HACKING e IMPOSSIBLE:** Si el jugador cuenta con escudos Matrix (`current_shields > 0`), absorbe el 100% del daño reduciendo exactamente 1 escudo sin perder vida. Si no posee escudos, cualquier impacto recibido resulta en **muerte súbita instantánea**.
+- **Modos HACKING e IMPOSSIBLE:** Si el jugador cuenta con escudos Matrix (`current_shields > 0`), absorbe el 100% del daño reduciendo exactamente 1 escudo sin perder vida. Si no posee escudos, cualquier impacto recibido resulta en **game over**.
 - **Invulnerabilidad y Curación:** Durante maniobras tácticas (Giro de Barril / Dash) no se consume vida ni escudos (`is_invulnerable=True`). Los paquetes médicos (`damage < 0`) restauran la salud al máximo (100 HP).
 
 ### 2. Sistema de Puntuación Escalar y Acumulación (`ScoreRules`)

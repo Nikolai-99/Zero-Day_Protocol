@@ -254,7 +254,7 @@ uv run pytest
 
 En cumplimiento riguroso de los lineamientos de transparencia de la Evaluación Práctica 1 (Sección 4.E):
 
-### 1. Herramientas Utilizadas y Propósito
+### 1. Herramientas Utilizadas y Propósito (FeedBack de implementación)
 - **Herramienta:** **Antigravity CLI** con modelos fundacionales de Google DeepMind.
 - **Para qué se usó:**
   - Desacoplamiento de las 5 reglas de negocio hacia módulos de dominio puro en Python (`game_rules.py`).

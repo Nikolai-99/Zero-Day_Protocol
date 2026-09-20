@@ -310,8 +310,8 @@ El juego está completamente autonomizado para funcionar en ordenadores **sin ac
    * Mapeadas directamente en `src/index.css` y `splash.html` mediante directivas `@font-face` locales relativas.
 3. **Motor de Estilos Autónomo:**
    * Tailwind CSS precompilado mediante PostCSS en `src/index.css` y bundle standalone offline `assets/tailwind.min.js`.
-4. **Modelos 3D y Audio Locales:**
-   * Todos los modelos GLB, efectos sonoros y música residen en la carpeta física `assets/`.
+4. **Modelos 3D y Gráficos Locales:**
+   * Todos los modelos GLB e imágenes residen en la carpeta física `assets/`. El juego opera en modo silencioso sin dependencias de pistas de audio.
 
 > [!NOTE]
 > Para consultar la trazabilidad legal, licencias (SIL OFL 1.1, Apache 2.0, MIT) y especificaciones técnicas de cada asset, consulte [`assets/DOCUMENTACION_ASSETS.md`](assets/DOCUMENTACION_ASSETS.md).
@@ -412,4 +412,3 @@ Dado que la aplicación de producción ahora conserva el caché de sombreadores 
 1. **Desactivar Caché en DevTools**: Abre las DevTools (se abren automáticamente en Modo Dev), ve a la pestaña **Network** y activa la opción **Disable Cache** mientras las herramientas estén abiertas.
 2. **Hard Reload**: Presiona `Ctrl + F5` o `Ctrl + Shift + R` dentro de la ventana de desarrollo del juego.
 3. **Launcher Automatizado**: El archivo launcher [run_dev.bat](file:///C:/Users/Felip/Escritorio/Zero-Day_Protocol/run_dev.bat) sigue borrando de manera automática el caché en la carpeta temporal de desarrollo `%APPDATA%\zero_day_protocol` antes de cada inicio.
-

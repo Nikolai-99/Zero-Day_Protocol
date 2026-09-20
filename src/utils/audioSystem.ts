@@ -21,54 +21,22 @@ class GlobalAudioSystem {
   // Buffer preasignado para análisis espectral (Zero GC allocation en useFrame)
   private dataArray: Uint8Array | null = null;
 
+  private currentVolume: number = 0.6;
+
   /**
    * Inicializar el contexto de audio ante interacción del usuario
    */
   public init() {
-    if (this.ctx) return;
-    try {
-      this.ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-      this.analyser = this.ctx.createAnalyser();
-      this.analyser.fftSize = 64; // Bajo tamaño para máxima eficiencia computacional en frames
-      
-      this.gainNode = this.ctx.createGain();
-      this.gainNode.gain.value = 0.6; // Volumen inicial al 60% (dB normales)
-      
-      this.analyser.connect(this.gainNode);
-      this.gainNode.connect(this.ctx.destination);
-      console.log('[AUDIO SYSTEM] Web Audio Context inicializado correctamente.');
-    } catch (e) {
-      console.error('[AUDIO SYSTEM] Error al inicializar AudioContext:', e);
-    }
+    // Modo silencioso: AudioContext no requerido activamente
   }
 
   /**
-   * Cargar y decodificar el buffer de la canción
+   * Cargar y decodificar el buffer de la canción (Modo silencioso)
    */
-  public async loadTrack(url: string) {
-    this.init();
-    if (!this.ctx) return;
-    
-    // Si la pista ya está cargada en caché, la seleccionamos de inmediato
-    if (this.buffers.has(url)) {
-      this.audioBuffer = this.buffers.get(url)!;
-      this.currentUrl = url;
-      return;
-    }
-    
-    try {
-      console.log(`[AUDIO SYSTEM] Cargando pista musical: ${url}...`);
-      const response = await fetch(url);
-      const arrayBuffer = await response.arrayBuffer();
-      const decodedBuffer = await this.ctx.decodeAudioData(arrayBuffer);
-      
-      this.buffers.set(url, decodedBuffer);
-      this.audioBuffer = decodedBuffer;
-      this.currentUrl = url;
-      console.log(`[AUDIO SYSTEM] Pista ${url} cargada y decodificada exitosamente.`);
-    } catch (e) {
-      console.error('[AUDIO SYSTEM] Error al cargar y decodificar pista:', e);
-    }
+  public async loadTrack(url?: string) {
+    // En modo silencioso, no se intentan descargar ni decodificar archivos inexistentes
+    this.currentUrl = null;
+    return Promise.resolve();
   }
 
   /**
@@ -114,102 +82,49 @@ class GlobalAudioSystem {
   }
 
   /**
-   * Reproducir en bucle ininterrumpido a partir del segundo 14.00 (luego de sonar la intro una vez)
+   * Reproducir en bucle (Modo silencioso: inactivo)
    */
   public play() {
-    this.init();
-    if (!this.ctx || !this.audioBuffer || this.isPlaying) return;
-
-    if (this.ctx.state === 'suspended') {
-      this.ctx.resume();
-    }
-
-    try {
-      this.source = this.ctx.createBufferSource();
-      this.source.buffer = this.audioBuffer;
-      this.source.loop = true;
-      this.source.loopStart = 0; // Bucle desde el comienzo de la canción
-      this.source.loopEnd = this.audioBuffer.duration; // Bucle completo hasta el final sin cortes
-
-      this.source.connect(this.analyser!);
-      this.source.start(0);
-      this.isPlaying = true;
-      console.log('[AUDIO SYSTEM] Reproduciendo loop de precisión desde 13.20s.');
-    } catch (e) {
-      console.error('[AUDIO SYSTEM] Error al iniciar la reproducción:', e);
-    }
+    this.isPlaying = false;
   }
 
   /**
-   * Pausar el contexto de audio (congela toda reproducción)
+   * Pausar el contexto de audio
    */
   public pause() {
-    if (this.ctx && this.ctx.state === 'running') {
-      this.ctx.suspend();
-      console.log('[AUDIO SYSTEM] Reproducción pausada.');
-    }
+    this.isPlaying = false;
   }
 
   /**
-   * Reanudar el contexto de audio (descongela la reproducción)
+   * Reanudar el contexto de audio
    */
   public resume() {
-    if (this.ctx && this.ctx.state === 'suspended') {
-      this.ctx.resume();
-      console.log('[AUDIO SYSTEM] Reproducción reanudada.');
-    }
+    this.isPlaying = false;
   }
 
   /**
    * Detener la música de inmediato
    */
   public stop() {
-    if (this.source && this.isPlaying) {
-      try {
-        this.source.stop();
-      } catch (e) {}
-      this.source.disconnect();
-      this.source = null;
-      this.isPlaying = false;
-      console.log('[AUDIO SYSTEM] Reproducción de música detenida.');
-    }
+    this.isPlaying = false;
   }
 
   /**
-   * Extraer la intensidad del espectro de graves en tiempo real
-   * Ejecutado en el bucle principal useFrame del juego.
+   * Extraer la intensidad del espectro de graves (Modo silencioso: retorna 0)
    */
   public update() {
-    if (!this.isPlaying || !this.analyser) {
-      this.bassIntensity = 0;
-      return;
-    }
-    
-    const bufferLength = this.analyser.frequencyBinCount;
-    if (!this.dataArray || this.dataArray.length !== bufferLength) {
-      this.dataArray = new Uint8Array(bufferLength);
-    }
-    this.analyser.getByteFrequencyData(this.dataArray);
-    
-    // Los graves están en los primeros bins de frecuencia (20Hz - 150Hz)
-    let sum = 0;
-    const bassBins = Math.max(1, Math.floor(bufferLength * 0.25)); // Primeros bins de graves
-    
-    for (let i = 0; i < bassBins; i++) {
-      sum += this.dataArray[i];
-    }
-    
-    const average = sum / bassBins;
-    // Normalizar entre 0.0 y 1.0 (dividiendo por el rango máx de byte 255)
-    this.bassIntensity = Math.min(1.0, average / 255.0);
+    this.bassIntensity = 0;
   }
 
   /**
-   * Ajustar volumen general en tiempo real de forma suave
+   * Ajustar volumen general en tiempo real (mantiene compatibilidad con UI)
    */
   public setVolume(value: number) {
+    this.currentVolume = value;
     if (this.gainNode && this.ctx) {
-      this.gainNode.gain.setTargetAtTime(value, this.ctx.currentTime, 0.01);
+      try {
+        this.gainNode.gain.setTargetAtTime(value, this.ctx.currentTime, 0.01);
+      } catch (e) {}
     }
   }
 
@@ -217,7 +132,7 @@ class GlobalAudioSystem {
    * Obtener el volumen actual
    */
   public getVolume(): number {
-    return this.gainNode ? this.gainNode.gain.value : 1.0;
+    return this.currentVolume;
   }
 }
 

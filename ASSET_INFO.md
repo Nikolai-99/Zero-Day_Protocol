@@ -1,4 +1,4 @@
-﻿---
+---
 title: "Documentación de Recursos y Licencias (Assets) — Zero-Day Protocol"
 author: "Equipo de Desarrollo Zero-Day Protocol"
 created: "2026-09-05"
@@ -100,14 +100,12 @@ Los modelos tridimensionales están optimizados en formato binario GLTF (`.glb`)
 
 ---
 
-## 4. Banda Sonora y Diseño de Audio (`assets/`)
+## 4. Sistema de Audio y Modo Silencioso (`assets/`)
 
-El sistema de audio dinámico utiliza la Web Audio API con decodificación asíncrona en memoria a través de `audioSystem.ts`:
+Para reducir el tamaño del proyecto y garantizar una ejecución 100% autónoma y ligera, las pistas de audio han sido retiradas de `assets/`:
 
-| Recurso | Formato | Duración / Tamaño | Licencia | Autor / Procedencia | Función Táctica en el Juego |
-|---|---|---|---|---|---|
-| [`Zero-Day Protocol.mp3`](file:///C:/Users/Felip/Escritorio/Zero-Day_Protocol/assets/Zero-Day%20Protocol.mp3) | MPEG-1 Audio Layer 3 (320 kbps) | ~3:15 min / 6.00 MB | **Royalty-Free / Uso Libre** | Composición de sintetizadores Synthwave/Darksynth | **Tema Principal:** Pista musical en bucle durante la simulación de combate en la arena 3D. Incorpora atenuación suave (*fade out*) al pausar o al llegar a Game Over. |
-| [`Genesis.mp3`](file:///C:/Users/Felip/Escritorio/Zero-Day_Protocol/assets/Genesis.mp3) | MPEG-1 Audio Layer 3 (320 kbps) | ~2:20 min / 3.26 MB | **Royalty-Free / Uso Libre** | Composición Cyberpunk Melódica | **Pista Secundaria:** Pista sonora utilizada en transiciones de victoria y cinemáticas de despresurización del sistema. |
+* El motor de sonido en [`src/utils/audioSystem.ts`](file:///C:/Users/Felip/Escritorio/Zero-Day_Protocol/src/utils/audioSystem.ts) opera en **modo silencioso** sin depender de assets multimedia.
+* Los controles de volumen en la interfaz permanecen disponibles sin emitir excepciones.
 
 ---
 

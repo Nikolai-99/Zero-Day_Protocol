@@ -1,4 +1,4 @@
-﻿---
+---
 title: "Documentación de Recursos y Dependencias Offline (Assets)"
 project: "Zero-Day Protocol"
 author: "Google DeepMind Advanced Agentic Coding Pair"
@@ -33,7 +33,6 @@ flowchart TD
 
     subgraph Assets ["Local Assets (assets/)"]
         FONTS["assets/fonts/*.woff2"]
-        AUDIO["assets/*.mp3"]
         MODELS["assets/3D Models/*.glb"]
         ICON["assets/app_icon.png"]
         TAILWIND_FALLBACK["assets/tailwind.min.js"]
@@ -51,7 +50,6 @@ flowchart TD
     LAUNCH_VITE --> LAUNCH_ELECTRON
     FONTS --> CSS
     CSS --> Frontend
-    AUDIO --> Frontend
     MODELS --> THREE
     ICON --> LAUNCH_ELECTRON
 ```
@@ -90,12 +88,12 @@ Todas las fuentes han sido descargadas localmente en formato moderno **WOFF2** e
 
 ---
 
-## 4. 🎵 Banda Sonora y Efectos de Audio (`assets/`)
+## 4. 🔇 Sistema de Audio y Modo Silencioso (Zero Audio Assets)
 
-| Recurso / Archivo | Formato | Bitrate / Frecuencia | Licencia | Función en el Juego |
-|---|---|---|---|---|
-| `assets/Zero-Day Protocol.mp3` | MPEG Audio Layer 3 (.mp3) | 320 kbps, 44.1 kHz Estéreo | **Uso Libre / Creative Commons** | Tema musical principal del juego. Reproducción en bucle dinámico durante el combate y el menú principal. |
-| `assets/Genesis.mp3` | MPEG Audio Layer 3 (.mp3) | 320 kbps, 44.1 kHz Estéreo | **Uso Libre / Creative Commons** | Pista sonora alternativa utilizada durante secuencias de victoria o transición. |
+Para aligerar la carga del repositorio y maximizar la compatibilidad en cualquier entorno sin dependencias de archivos binarios de sonido, las pistas musicales han sido retiradas de `assets/`.
+
+* El sistema de sonido en [`src/utils/audioSystem.ts`](../src/utils/audioSystem.ts) opera en **Modo Silencioso**: no requiere ni descarga archivos `.mp3`.
+* Los controles de interfaz de volumen y silenciado continúan siendo funcionales a nivel de estado sin generar errores.
 
 ---
 

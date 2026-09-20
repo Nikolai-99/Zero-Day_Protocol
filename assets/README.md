@@ -28,12 +28,13 @@ Todos los recursos multimedia, tipográficos y de estilo utilizados en el juego 
 
 ---
 
-## 3. Modelos 3D Procedurales y Audio
+## 3. Modelos 3D Procedurales e Identidad Visual
 
 | Recurso | Ubicación | Formato | Tipo |
 |---|---|---|---|
 | **KiT Virus** | `assets/3D Models/KiT_Virus.glb` | GLTF / Binary GLB | Modelo 3D de enemigo procedural |
 | **Player Cursor** | `assets/3D Models/Player_Cursor.glb` | GLTF / Binary GLB | Modelo 3D de nave / avatar del operador |
-| **Banda Sonora Principal** | `assets/Zero-Day Protocol.mp3` | MPEG Audio Layer 3 | Audio soundtrack cyberpunk |
-| **Tema Alternativo Genesis** | `assets/Genesis.mp3` | MPEG Audio Layer 3 | Audio soundtrack |
 | **Icono de Aplicación** | `assets/app_icon.png` | PNG | Logotipo e isotipo de Electron |
+
+> [!NOTE]
+> Las pistas de audio han sido retiradas de `assets/`. El juego opera actualmente en **modo silencioso** sin dependencias de archivos de sonido.

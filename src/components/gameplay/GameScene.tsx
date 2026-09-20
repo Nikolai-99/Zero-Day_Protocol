@@ -19,10 +19,7 @@ const getNextEntityId = () => (++_entityIdCounter).toString();
 
 const collisionService = new CollisionService();
 const enemyBehaviorService = new EnemyBehaviorService();
-// @ts-ignore
-import musicUrl from '../../../assets/Zero-day Protocol.mp3';
-// @ts-ignore
-import genesisUrl from '../../../assets/Genesis.mp3';
+
 
 const getDistance2D = (p1: THREE.Vector3, p2: THREE.Vector3) => {
   return Math.sqrt((p1.x - p2.x) ** 2 + (p1.z - p2.z) ** 2);
@@ -229,80 +226,15 @@ export const GameScene: React.FC<GameSceneProps> = ({ onRestart }) => {
       return new THREE.Vector3(x, 0, z);
   };
 
-  // --- Audio System Lifecycle & Dynamic Music Switcher ---
+  // --- Inicialización y notificación de carga (Modo silencioso) ---
+  // Notifica a Electron que la app está lista sin depender de archivos de audio
   useEffect(() => {
-    const handleMusicTransition = async () => {
-      // Si el audio aún no se ha cargado en el preloader, no hacemos nada todavía
-      if (!audioSystem.currentUrl) return;
-
-      if (gameState === 'MENU') {
-        // Asegurar que el AudioContext esté activo y reproducir la canción del menú
-        audioSystem.resume();
-        const currentTrack = audioSystem.currentUrl;
-        if (currentTrack !== musicUrl) {
-          audioSystem.stop();
-          await audioSystem.loadTrack(musicUrl); // Resolución instantánea gracias al caché
-          audioSystem.play();
-        } else if (!audioSystem.isPlaying) {
-          audioSystem.play();
-        }
-      } 
-      else if (gameState === 'PLAYING') {
-        // Reanudar el AudioContext (despausar si venimos de PAUSED)
-        audioSystem.resume();
-        const currentTrack = audioSystem.currentUrl;
-        if (currentTrack !== genesisUrl) {
-          audioSystem.stop();
-          await audioSystem.loadTrack(genesisUrl); // Resolución instantánea gracias al caché
-          audioSystem.play();
-        } else if (!audioSystem.isPlaying) {
-          audioSystem.play();
-        }
-      } 
-      else if (gameState === 'PAUSED') {
-        // Pausar el AudioContext para congelar la música durante la pantalla de pausa
-        audioSystem.pause();
-      } 
-      else if (gameState === 'GAMEOVER' || gameState === 'VICTORY') {
-        // Detener la música completamente en las pantallas de fin de partida
-        audioSystem.stop();
-      }
-    };
-    
-    handleMusicTransition();
-  }, [gameState]);
-
-  // --- Precarga de Recursos Críticos al Iniciar ---
-  // Mantiene la ventana de Splash de Electron abierta hasta que todo esté 100% cargado y compilado,
-  // evitando micro-congelamientos (stutter) o renderizado por partes al revelar la interfaz.
-  useEffect(() => {
-    const preloadAssets = async () => {
-      try {
-        console.log('[PRELOAD] Iniciando precarga asíncrona de canciones...');
-        // Descargar y decodificar ambas canciones en paralelo en segundo plano
-        await Promise.all([
-          audioSystem.loadTrack(musicUrl),
-          audioSystem.loadTrack(genesisUrl)
-        ]);
-        
-        // Seleccionar explícitamente el tema del menú para iniciar
-        await audioSystem.loadTrack(musicUrl);
-        audioSystem.play();
-        console.log('[PRELOAD] Precarga asíncrona finalizada con éxito.');
-      } catch (e) {
-        console.error('[PRELOAD] Error crítico al precargar recursos:', e);
-      } finally {
-        // Notificar a Electron que la app está lista (cierra el Splash y muestra la ventana principal)
-        if (window.electronAPI && window.electronAPI.appReady) {
-          window.electronAPI.appReady();
-        }
-      }
-    };
-
-    preloadAssets();
+    if (window.electronAPI && window.electronAPI.appReady) {
+      window.electronAPI.appReady();
+    }
 
     return () => {
-      audioSystem.stop(); // Detener música al desmontar completamente
+      audioSystem.stop();
     };
   }, []);
 

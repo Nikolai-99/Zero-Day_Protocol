@@ -59,7 +59,7 @@ npm install
 > .venv\Scripts\python -m pip install --no-index --find-links=vendor\wheels -r backend\requirements.txt
 > ```
 
-#### Paso 3: Ejecución de la Batería de Controles de Calidad
+#### Paso 3: Ejecución de la Batería de Controles de Calidad (Suite de 3 Niveles)
 Valida que el sistema cumple con todos los estándares estáticos y dinámicos exigidos por la asignatura:
 ```bash
 # 1. Verificación estática de tipos (Pyrefly) -> 0 errores
@@ -68,7 +68,16 @@ uv run pyrefly check
 # 2. Linter y formateador de código (Ruff) -> 0 diagnósticos silenciados
 uv run ruff check .
 
-# 3. Suite automatizada de pruebas (Pytest) -> 100 pruebas en verde
+# 3. Nivel 1: Pruebas unitarias de reglas de dominio puro (86 pruebas en ~0.15s)
+uv run pytest tests/unit
+
+# 4. Nivel 2: Pruebas de integración de contratos API y SQLite (22 pruebas en ~0.50s)
+uv run pytest tests/integration
+
+# 5. Nivel 3: Pruebas extremo a extremo con Playwright (5 pruebas en ~13s)
+uv run pytest tests/e2e
+
+# 6. Suite unificada completa (113 pruebas en verde)
 uv run pytest
 ```
 
@@ -277,7 +286,18 @@ Durante el ciclo de desarrollo interactivo, el criterio humano detectó y corrig
 ### 3. Caso Completo de Revisión Adversarial (Productor — Auditor — Árbitro)
 - **Propuesta del Agente Productor:** El agente implementó inicialmente las pruebas de integración en `tests/test_api_rules.py` ejecutándose directamente contra el archivo de base de datos local `zero_day_protocol.db`.
 - **Objeción del Agente Auditor:** El auditor señaló que correr la suite de pruebas contra la base de datos real provocaba contaminación de datos (*data pollution*), dejando usuarios efímeros de prueba (`Hero_...`, `Op_...`) en la tabla de clasificación del juego real, comprometiendo la reproducibilidad de la evaluación y la persistencia del usuario.
-- **Decisión y Arbitraje del Desarrollador:** El desarrollador dictaminó desacoplar completamente la suite de pruebas del archivo físico, configurando una base de datos SQLite en memoria (`sqlite:///:memory:` con `StaticPool`) mediante `dependency_overrides[get_db]` en `test_api_rules.py`. Esto aisló al 100% las pruebas automatizadas, aceleró la suite a 1.1 segundos y conservó la base de datos de producción limpia y con integridad referencial.
+- **Decisión y Arbitraje del Desarrollador:** El desarrollador dictaminó desacoplar completamente la suite de pruebas del archivo físico, configurando una base de datos SQLite en memoria (`sqlite:///:memory:` con `StaticPool`) mediante `dependency_overrides[get_db]` en `tests/integration/conftest.py`. Esto aisló al 100% las pruebas automatizadas, aceleró la suite a 0.5 segundos y conservó la base de datos de producción limpia y con integridad referencial.
+
+### 4. Auditoría de Casos de Prueba Propuestos por el Agente (Evaluación Parcial 2 - Sección 3.E)
+En cumplimiento estricto del criterio de criterio frente al agente de la EP2:
+* **Casos Propuestos por el Agente y ACEPTADOS por el Desarrollador:**
+  1. *Frontera de atajo en modo IMPOSSIBLE para `RankingRules`:* El agente propuso evaluar exhaustivamente el borde numérico exacto de 5,000 pts y Oleada 3 (`test_rank_elite_operator_impossible_shortcut`), lo que garantizó la cobertura de una clase de equivalencia no nominal omitida en la primera entrega.
+  2. *Rechazo estricto con HTTP 422 en esquemas Pydantic:* El agente propuso un caso de prueba de contrato que envía un `user_id` sin el campo `username` a `/api/users`, verificando que la API consumible responda con `422 Unprocessable Entity` y el detalle estructurado de validación (`test_post_user_missing_required_fields_returns_422`), blindando la API ante el Defecto 2 de la verificación en vivo.
+* **Casos Propuestos por el Agente y DESCARTADOS CON FUNDAMENTO por el Desarrollador:**
+  1. *Aserción de coordenadas de mallas 3D en Playwright:* El agente propuso escribir una prueba E2E que calculara las coordenadas X, Y, Z de las partículas y mallas de los virus en el Canvas de WebGL mediante capturas periódicas.  
+     **Fundamento del rechazo:** Caso descartado por ser técnicamente inviable e inestable (*flaky test*). La emulación por software de WebGL en entornos headless de Chromium no garantiza sincronización de microsegundos a 60 FPS, generando falsos negativos. El desarrollador descartó la inspección del Canvas y redirigió la prueba a la verificación determinista en el DOM del HUD reactivo (`System Status`, `HP 100%`, `Shield Matrix`).
+  2. *Prueba unitaria con Oleada negativa (`wave = -5`) en `ScoreRules`:* El agente propuso escribir una prueba unitaria pasando oleadas negativas a la fórmula aritmética.  
+     **Fundamento del rechazo:** Caso descartado por redundancia entre capas. La precondición de entrada está rígidamente asegurada por el esquema Pydantic en FastAPI (`Field(ge=1)`) y por el store de Zustand en el cliente. Escribir pruebas repetitivas de lo mismo en múltiples capas viola el principio de la pirámide de testing (*"tres copias de lo mismo no hacen una pirámide"*).
 
 ---
 

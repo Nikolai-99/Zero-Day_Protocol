@@ -161,20 +161,20 @@ Zero-Day_Protocol/
 │   ├── schemas/                  # Esquemas Pydantic para validación de contratos
 │   ├── services/                 # Reglas de negocio puras (game_rules.py)
 │   └── main.py                   # Entrypoint FastAPI con ciclo de vida lifespan
-├── tests/                        # Suite de pruebas unitarias y de integración (pytest)
-│   ├── test_combat_rules.py      # Regla 1 y regresión de defecto de vida negativa
-│   ├── test_score_rules.py       # Regla 2: Multiplicadores de oleada/modo, graze y acumulación
-│   ├── test_hacking_rules.py     # Regla 3: Inyección de código y límite de escudos
-│   ├── test_ranking_rules.py     # Regla 4: Rangos de operador y análisis de frontera
-│   ├── test_identity_rules.py    # Regla 5: Identidad, generación y restauración de ID
-│   └── test_api_rules.py         # Pruebas de integración HTTP aisladas en memoria
+├── tests/                        # Pirámide de pruebas automatizada de 3 niveles (pytest)
+│   ├── unit/                     # Nivel 1: Pruebas unitarias de dominio puro (86 pruebas)
+│   ├── integration/              # Nivel 2: Integración API y SQLite en memoria (22 pruebas)
+│   └── e2e/                      # Nivel 3: Pruebas de interfaz E2E con Playwright (5 pruebas)
 ├── src/                          # Cliente WebGL / R3F en React 19 y TypeScript
 │   ├── api/                      # Clientes de comunicación HTTP con la API REST local
 │   ├── components/               # Componentes modulares SOLID de UI y Gameplay 3D
 │   ├── constants/                # Paletas de color, preguntas y configuraciones
 │   ├── store/                    # Estado global reactivo con Zustand
 │   └── types/                    # Interfaces y definiciones TypeScript
-├── CALIDAD.md                    # Documento formal de calidad ISO/IEC 25010 y auditoría
+├── CALIDAD.md                    # Matriz de trazabilidad ISO/IEC 25010 y auditoría de calidad
+├── DISENO-DE-CASOS.md            # Diseño formal de casos (EP, BVA, tablas de decisión, descartados)
+├── PLAN-DE-PRUEBAS.md            # Plan maestro de pruebas según norma ISO/IEC/IEEE 29119
+├── Suite_de_Pruebas_Ev2.md       # Documento de arquitectura para Obsidian con diagramas Mermaid
 ├── PROPUESTA_MEJORAS_ROGUELIKE.md# Propuesta de extensión de mecánicas y compatibilidad
 ├── pyproject.toml                # Configuración de uv, ruff, pyrefly y pytest
 ├── .python-version               # Versión de Python fijada (CPython 3.12)
@@ -187,45 +187,36 @@ Zero-Day_Protocol/
 
 ---
 
-## 📋 Reglas de Negocio Implementadas (Evaluación Práctica 1 AIEP - TALLER DE TESTING)
+## 📋 Pirámide de Pruebas y Cobertura de Calidad (Evaluación Práctica 2 AIEP - TALLER DE TESTING)
 
-El dominio del sistema concentra **cinco reglas de negocio troncales** implementadas en Python puro, fuertemente tipado e inmutable (`@dataclass(frozen=True)`), ubicadas en [`backend/services/game_rules.py`](backend/services/game_rules.py) y expuestas vía API REST en [`backend/routers/rules.py`](backend/routers/rules.py):
+El proyecto evoluciona incrementalmente desde la Evaluación Práctica 1 hacia una **arquitectura de aseguramiento de calidad de tres niveles** bajo el estándar **ISO/IEC/IEEE 29119**, sumando **113 pruebas automatizadas**. El dominio troncal implementado en Python puro e inmutable (`@dataclass(frozen=True)` en [`backend/services/game_rules.py`](backend/services/game_rules.py)) se complementa con la verificación formal de contratos HTTP de la API REST ([`backend/routers/rules.py`](backend/routers/rules.py)), pruebas de interfaz extremo a extremo con Playwright, y documentación formal de diseño de casos en [`DISENO-DE-CASOS.md`](DISENO-DE-CASOS.md) y [`PLAN-DE-PRUEBAS.md`](PLAN-DE-PRUEBAS.md):
 
-### 1. Resolución de Combate y Mitigación de Daño (`CombatRules`)
-- **Modo NORMAL:** La vida del jugador se reduce por el daño recibido. La regla establece un **límite inferior estricto en 0** (`max(0, current_hp - damage)`). Si la vida llega a 0, la partida finaliza inmediatamente marcando `is_game_over=True`.
-  - *Corrección de defecto histórico:* Se erradicó el bug donde la vida caía a valores negativos (`-10`, `-20`, etc.) sin finalizar la partida, cubierto formalmente mediante pruebas de regresión.
-- **Modos HACKING e IMPOSSIBLE:** Si el jugador cuenta con escudos Matrix (`current_shields > 0`), absorbe el 100% del daño reduciendo exactamente 1 escudo sin perder vida. Si no posee escudos, cualquier impacto recibido resulta en **game over**.
-- **Invulnerabilidad y Curación:** Durante maniobras tácticas (Giro de Barril / Dash) no se consume vida ni escudos (`is_invulnerable=True`). Los paquetes médicos (`damage < 0`) restauran la salud al máximo (100 HP).
+### 1. Pirámide de Pruebas Automatizada en 3 Niveles (113 Pruebas)
+- **Nivel 1 — Pruebas Unitarias (`tests/unit/`):** 86 pruebas sobre las reglas de dominio puro (`CombatRules`, `ScoreRules`, `HackingRules`, `RankingRules`, `UserIdentityRules`). Cubren particiones nominales, análisis de valores límite (BVA) y la regresión del defecto histórico de vida negativa. Ejecución ultra-rápida en ~0.15s.
+- **Nivel 2 — Pruebas de Integración (`tests/integration/`):** 22 pruebas que validan los contratos HTTP de FastAPI mediante `TestClient` y una base de datos SQLite aislada en memoria (`sqlite:///:memory:` con `StaticPool`). Valida códigos de estado (200, 400, 422), esquemas Pydantic y persistencia relacional con agregación de puntajes históricos y rangos sin contaminación de datos. Ejecución en ~0.50s.
+- **Nivel 3 — Pruebas Extremo a Extremo con Playwright (`tests/e2e/`):** 5 pruebas sobre el frontend real servido por Vite. Valida el recorrido de usuario (*User Journey*): carga de interfaz, renombrado de operador (*Callsign*), inicio de misión en dificultad Normal (HUD con HP 100%), adaptación del HUD a escudos Matrix en Hacking Mode, alerta de muerte a 1 golpe en Impossible Mode y visibilidad del panel de clasificación (*Leaderboard*). Ejecución en ~13s.
 
-### 2. Sistema de Puntuación Escalar y Acumulación (`ScoreRules`)
-- **Puntuación Base por Malware:** NORMAL (100 pts), CORE (1,000 pts), TRIANGLE (1,000 pts).
-- **Multiplicador de Oleada:** Progresión aritmética continua: $\text{WaveMult} = 1.0 + (\text{wave} - 1) \times 0.10$.
-- **Multiplicador de Modo:** NORMAL ($\times 1.0$), HACKING ($\times 1.5$), IMPOSSIBLE ($\times 2.5$).
-- **Fórmula de Recompensa:** $\text{Puntos} = \text{round}(\text{Base} \times \text{WaveMult} \times \text{ModeMult})$.
-- **Mecánica de Roce Táctico (Graze):** Rozar proyectiles otorga +15 puntos extra en NORMAL y HACKING. En modo IMPOSSIBLE el graze está expresamente desactivado (0 puntos).
-- **Acumulación en Fila Única:** Las partidas sucesivas suman su puntaje al total acumulado del operador y actualizan la oleada máxima alcanzada (`max(current_wave, additional_wave)`), sin duplicar registros en el Leaderboard.
-- **Sincronización Recurrente a Mitad de Partida:** La puntuación se guarda incrementalmente en tiempo real y al salir (`Abort & Return`), asegurando que todo enemigo derrotado quede registrado incluso si la oleada no concluye.
+### 2. Diseño Formal de Casos de Prueba (`DISENO-DE-CASOS.md`)
+- **Particiones de Equivalencia (EP):** Clasificación sistemática de entradas en rangos válidos e inválidos para salud ($[1,99], \{100\}, \{0\}, <0$), modos canónicos (`NORMAL`, `HACKING`, `IMPOSSIBLE`), daño y formato de nombre de operador.
+- **Análisis de Valores Límite (BVA):** Pruebas de 3 puntos en los bordes numéricos exactos ($N-1, N, N+1$) para umbrales de rango militar (1499/1500, 3999/4000, 9999/10000 y el atajo acelerado de 4999/5000 en IMPOSSIBLE), así como bordes de salud ($0, 1, 100$).
+- **Tablas de Decisión:** Derivación combinatoria exhaustiva para resolución de combate multivariante (8 reglas R1–R8 que cruzan invulnerabilidad, curación, modo de juego y escudos) y matriz de asignación de rangos (7 reglas T1–T7).
 
-### 3. Inyección de Código / Hacking Quiz (`HackingRules`)
-- **Acierto al Primer Intento (`attempts == 1`):** Otorga recompensa máxima: **+2 escudos** y **+500 puntos**.
-- **Acierto tras Reintentos (`attempts > 1`):** Otorga recompensa estándar: **+1 escudo** y **+250 puntos**.
-- **Tope de Escudos:** Límite máximo rígido de 5 escudos Matrix (`MAX_SHIELDS = 5`).
-- **Respuesta Errónea:** No concede puntos ni escudos.
+### 3. Casos de Prueba Descartados con Justificación Técnica
+- **Oleada Negativa en API (`wave <= 0`):** Descartado en pruebas de integración porque el esquema declarativo Pydantic (`Field(ge=1)`) intercepta la petición con `HTTP 422 Unprocessable Entity` antes de invocar la lógica de dominio.
+- **Aserción de Mallas y Partículas 3D en Playwright:** Descartado para erradicar *flaky tests* causados por la emulación de Chromium por software; se sustituyó por verificación determinista del DOM en el HUD (`System Status`, `HP 100%`, `Shield Matrix`).
+- **Escudos Negativos (`current_shields < 0`):** Descartado por precondición y sanitización en `max(0, min(5, current_shields))` y la acción de Zustand `consumeShieldStack`.
+- **Concurrencia Distribuida en SQLite:** Descartado por estar fuera del alcance del estándar para una arquitectura monousuario de escritorio local.
 
-### 4. Jerarquía de Rangos de Operadores (`RankingRules`)
-Clasificación militar de autorización según desempeño en la arena:
-- **ELITE_OPERATOR (Nivel 4):** Score $\ge 10,000$ y Oleada $\ge 5$ (o vía rápida en modo IMPOSSIBLE con Score $\ge 5,000$ y Oleada $\ge 3$).
-- **SECURITY_SPECIALIST (Nivel 3):** Score $\ge 4,000$ y Oleada $\ge 3$.
-- **VULNERABILITY_HUNTER (Nivel 2):** Score $\ge 1,500$ y Oleada $\ge 2$.
-- **SCRIPT_ROOKIE (Nivel 1):** Rango base para cadetes que no alcanzan los umbrales de seguridad anteriores.
+### 4. Plan Maestro de Pruebas y Trazabilidad (ISO/IEC/IEEE 29119)
+- **Marco Normativo (`PLAN-DE-PRUEBAS.md`):** Definición formal de alcance de pruebas, estrategia de mitigación de riesgos de calidad (funcionalidad, contratos, UI), criterios de entrada y salida, y entornos de prueba.
+- **Matriz de Trazabilidad Bidireccional:** Vinculación directa entre identificadores de caso de prueba (`TC-COMBAT-001`, `TC-RANK-001`, `TC-API-001`, `TC-E2E-001`, etc.), reglas de negocio evaluadas, técnica de diseño formal aplicada y archivos de prueba automatizados.
+- **Visualización en Obsidian (`Suite_de_Pruebas_Ev2.md`):** Documento central compatible con Obsidian que integra diagramas Mermaid para visualización de arquitectura de testing, flujo E2E y jerarquía de rangos.
 
-### 5. Identidad y Restauración de Operador para Puntuación (`UserIdentityRules`)
-- **Sesión Provisional al Entrar:** Al entrar al juego se genera un ID aleatorio (`player_xxxxxxxx`) y un alias provisional para jugar de inmediato sin fricciones.
-- **Persistencia Recurrente de Sesión:** La identidad del jugador se mantiene constante entre partidas y transiciones de menús durante toda la sesión hasta cerrar el juego o cambiar el nombre.
-- **Restauración y Asignación de ID:**
-  - Al ingresar un nombre exacto registrado previamente, el sistema **restaura su ID original** (`is_restored=True`), conservando el histórico.
-  - Al cambiar de nombre a uno nuevo, se asigna un **nuevo ID único**, evitando la sobreescritura de operadores previos.
-- **Elegibilidad de Puntuación:** Las sesiones anónimas no guardan puntuación; solo los operadores que ingresaron su nombre persisten su puntaje bajo su propio `username`.
+### 5. Consolidación de Reglas Troncales de Negocio (Dominio Base)
+- **Resolución de Combate y Mitigación de Daño (`CombatRules`):** Gestión de vida, absorción de 1 escudo Matrix en HACKING/IMPOSSIBLE, muerte súbita con 0 escudos, invulnerabilidad táctica y truncamiento en 0 (piso matemático).
+- **Sistema de Puntuación Escalar (`ScoreRules`):** Base por tipo de malware (100, 1000 pts), multiplicador de oleada continuo ($1.0 + (\text{wave}-1)\times 0.10$), multiplicador de dificultad (1.0x, 1.5x, 2.5x), roce táctico (*Graze* +15 pts, desactivado en IMPOSSIBLE) y acumulación histórica de puntuación.
+- **Jerarquía de Rangos Militares (`RankingRules`):** Clasificación en 4 niveles de autorización (`SCRIPT_ROOKIE`, `VULNERABILITY_HUNTER`, `SECURITY_SPECIALIST`, `ELITE_OPERATOR`).
+- **Identidad y Restauración de Operador (`UserIdentityRules`):** Validación de Callsign (1-15 caracteres), persistencia de sesión entre transiciones y restauración de ID histórico.
 
 ---
 
@@ -253,20 +244,21 @@ uv run pyrefly check
 uv run ruff check .
 
 # 4. Batería de pruebas automatizadas (Pytest)
-# Ejecuta 100 pruebas unitarias y de integración en ~1 segundo
+# Ejecuta 113 pruebas automatizadas en los 3 niveles de la pirámide (Unit, Integration, E2E)
 uv run pytest
 ```
 
 > [!NOTE]
 > Para conocer la matriz de trazabilidad ISO/IEC 25010, la justificación de diagnósticos y el registro estructurado de hallazgos de auditoría, consulte el documento [`CALIDAD.md`](CALIDAD.md).
-> Para revisar la documentación detallada de cada algoritmo y caso de prueba con diagramas Mermaid, consulte [`testing_document.md`](testing_document.md).
+> Para revisar el diseño formal de casos de prueba (Particiones de Equivalencia, BVA y Tablas de Decisión), consulte [`DISENO-DE-CASOS.md`](DISENO-DE-CASOS.md) y [`PLAN-DE-PRUEBAS.md`](PLAN-DE-PRUEBAS.md).
+> Para visualizar los diagramas de arquitectura en Obsidian, consulte [`Suite_de_Pruebas_Ev2.md`](Suite_de_Pruebas_Ev2.md).
 > Para revisar la propuesta de diseño de mecánicas roguelike y compatibilidad futura, consulte [`PROPUESTA_MEJORAS_ROGUELIKE.md`](PROPUESTA_MEJORAS_ROGUELIKE.md).
 
 ---
 
 ## 🤖 Uso de IA o Agentes
 
-En cumplimiento riguroso de los lineamientos de transparencia de la Evaluación Práctica 1 (Sección 4.E):
+En cumplimiento riguroso de los lineamientos de transparencia de las Evaluaciones Prácticas 1 y 2 (Secciones 4.E y 3.E):
 
 ### 1. Herramientas Utilizadas y Propósito (FeedBack de implementación)
 - **Herramienta:** **Antigravity CLI** con modelos fundacionales de Google DeepMind.

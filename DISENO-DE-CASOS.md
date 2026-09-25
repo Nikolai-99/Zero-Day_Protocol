@@ -28,11 +28,11 @@ Este documento contiene la derivación sistemática y formal de los casos de pru
 
 | Identificador | Variable Evaluada | Frontera / Límite | Valores Seleccionados | Resultado Esperado | Prueba Asociada |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **BVA-COMBAT-01** | `current_hp` | Límite inferior de muerte ($0$) | $HP = 0$ | Retorna `is_game_over=True`, `new_hp=0`. | `test_damage_when_already_dead_remains_game_over` |
-| **BVA-COMBAT-02** | `current_hp` | Salud mínima operativa ($1$) | $HP = 1, \text{daño} = 1$ | $HP$ cae exactamente a $0$, activa `is_game_over=True`. | `test_fatal_damage_triggers_game_over` |
-| **BVA-COMBAT-03** | `damage_amount` | Daño letal exacto | $HP = 40, \text{daño} = 40$ | $HP$ resultante $0$, partida terminada. | `test_fatal_damage_triggers_game_over` |
-| **BVA-COMBAT-04** | `damage_amount` | Daño excesivo (*Overkill*) | $HP = 20, \text{daño} = 80$ | **Truncamiento rígido:** $HP$ queda en $0$ (nunca negativo). | `test_negative_hp_defect_regression` |
-| **BVA-COMBAT-05** | `current_hp` | Salud máxima ($100$) | $HP = 99, \text{cura} = -1$ | Restaura salud plena a exactamente $100$. | `test_healing_restores_to_max_hp` |
+| **BVA-COMBAT-01** | `current_hp` | Límite inferior de muerte ($0$) | $HP = 0$ | Retorna `is_game_over=True`, `new_hp=0`. | `test_dead_player_remains_dead` |
+| **BVA-COMBAT-02** | `current_hp` | Salud mínima operativa ($1$) | $HP = 1, \text{daño} = 1$ | $HP$ cae exactamente a $0$, activa `is_game_over=True`. | `test_damage_exact_lethal_triggers_game_over` |
+| **BVA-COMBAT-03** | `damage_amount` | Daño letal exacto | $HP = 40, \text{daño} = 40$ | $HP$ resultante $0$, partida terminada. | `test_damage_exact_lethal_triggers_game_over` |
+| **BVA-COMBAT-04** | `damage_amount` | Daño excesivo (*Overkill*) | $HP = 20, \text{daño} = 80$ | **Truncamiento rígido:** $HP$ queda en $0$ (nunca negativo). | `test_defect_regression_hp_never_drops_negative` |
+| **BVA-COMBAT-05** | `current_hp` | Salud máxima ($100$) | $HP = 99, \text{cura} = -1$ | Restaura salud plena a exactamente $100$. | `test_healing_restores_hp_to_maximum` |
 
 ---
 
@@ -49,7 +49,7 @@ Aplica cuando la regla combina simultáneamente: Modo de Juego $\times$ Escudos 
 | **Acción: Daño a Vida (`HP`)** | 0 | $-HP_{\text{max}}$ | $HP - D$ | Truncar $0$ | 0 | Letal ($0$) | 0 | Letal ($0$) |
 | **Acción: Consumo de Escudos** | 0 | 0 | 0 | 0 | $-1$ | 0 | $-1$ | 0 |
 | **Acción: `is_game_over`** | `False` | `False` | `False` | `True` | `False` | `True` | `False` | `True` |
-| **Prueba que lo implementa** | `test_invulnerable_prevents_damage` | `test_healing_restores_to_max_hp` | `test_normal_damage_reduces_hp` | `test_negative_hp_defect_regression` | `test_hacking_mode_absorbs_with_shield` | `test_hacking_mode_zero_shields_is_fatal` | `test_impossible_mode_absorbs_with_shield` | `test_impossible_mode_zero_shields_is_fatal` |
+| **Prueba que lo implementa** | `test_invulnerability_protects_against_all_damage` | `test_healing_restores_hp_to_maximum` | `test_damage_reduces_hp_correctly` | `test_defect_regression_hp_never_drops_negative` | `test_shield_absorbs_damage_completely[HACKING]` | `test_no_shields_causes_instant_death[HACKING]` | `test_shield_absorbs_damage_completely[IMPOSSIBLE]` | `test_no_shields_causes_instant_death[IMPOSSIBLE]` |
 
 ---
 
@@ -68,11 +68,11 @@ Rango:  [SCRIPT_ROOKIE] [VULN_HUNTER]  [SEC_SPECIALIST] [ELITE_OPERATOR]
 
 | Transición de Rango | Variable Crítica | Valor Bajo el Límite ($N - 1$) | Valor en el Borde ($N$) | Valor Sobre el Límite ($N + 1$) | Pruebas de Frontera |
 | :--- | :--- | :---: | :---: | :---: | :--- |
-| **Rookie $\to$ Hunter** | Score (Wave $\ge 2$) | $1,499$ (`SCRIPT_ROOKIE`) | $1,500$ (`VULNERABILITY_HUNTER`) | $1,501$ (`VULNERABILITY_HUNTER`) | `test_rank_vulnerability_hunter_boundary` |
-| **Rookie $\to$ Hunter** | Wave (Score $\ge 1500$) | Wave $1$ (`SCRIPT_ROOKIE`) | Wave $2$ (`VULNERABILITY_HUNTER`) | Wave $3$ (`VULNERABILITY_HUNTER`) | `test_rank_wave_boundary_conditions` |
-| **Hunter $\to$ Specialist** | Score (Wave $\ge 3$) | $3,999$ (`VULNERABILITY_HUNTER`) | $4,000$ (`SECURITY_SPECIALIST`) | $4,001$ (`SECURITY_SPECIALIST`) | `test_rank_security_specialist_boundary` |
-| **Specialist $\to$ Elite** | Score (Wave $\ge 5$) | $9,999$ (`SECURITY_SPECIALIST`) | $10,000$ (`ELITE_OPERATOR`) | $10,001$ (`ELITE_OPERATOR`) | `test_rank_elite_operator_standard_boundary` |
-| **Atajo IMPOSSIBLE** | Score (Wave $\ge 3$) | $4,999$ (`SECURITY_SPECIALIST`) | $5,000$ (`ELITE_OPERATOR`) | $5,001$ (`ELITE_OPERATOR`) | `test_rank_elite_operator_impossible_shortcut` |
+| **Rookie $\to$ Hunter** | Score (Wave $\ge 2$) | $1,499$ (`SCRIPT_ROOKIE`) | $1,500$ (`VULNERABILITY_HUNTER`) | $1,501$ (`VULNERABILITY_HUNTER`) | `test_boundary_thresholds` |
+| **Rookie $\to$ Hunter** | Wave (Score $\ge 1500$) | Wave $1$ (`SCRIPT_ROOKIE`) | Wave $2$ (`VULNERABILITY_HUNTER`) | Wave $3$ (`VULNERABILITY_HUNTER`) | `test_boundary_thresholds` |
+| **Hunter $\to$ Specialist** | Score (Wave $\ge 3$) | $3,999$ (`VULNERABILITY_HUNTER`) | $4,000$ (`SECURITY_SPECIALIST`) | $4,001$ (`SECURITY_SPECIALIST`) | `test_boundary_thresholds` |
+| **Specialist $\to$ Elite** | Score (Wave $\ge 5$) | $9,999$ (`SECURITY_SPECIALIST`) | $10,000$ (`ELITE_OPERATOR`) | $10,001$ (`ELITE_OPERATOR`) | `test_boundary_thresholds` |
+| **Atajo IMPOSSIBLE** | Score (Wave $\ge 3$) | $4,999$ (`SECURITY_SPECIALIST`) | $5,000$ (`ELITE_OPERATOR`) | $5,001$ (`ELITE_OPERATOR`) | `test_impossible_mode_elite_operator_qualification` |
 
 ---
 
@@ -88,7 +88,7 @@ Rango:  [SCRIPT_ROOKIE] [VULN_HUNTER]  [SEC_SPECIALIST] [ELITE_OPERATOR]
 | **¿Oleada Requerida Alcanzada?** | **Wave $\ge 5$** | **Wave $\ge 3$** | **Wave $\ge 2$** | - | **Wave $\ge 3$** | - | Insuficiente |
 | **Rango Asignado** | `ELITE_OPERATOR` | `SECURITY_SPECIALIST` | `VULNERABILITY_HUNTER` | `SCRIPT_ROOKIE` | `ELITE_OPERATOR` | `SCRIPT_ROOKIE` | `SCRIPT_ROOKIE` |
 | **Nivel de Autorización (*Clearance*)** | **Nivel 4** | **Nivel 3** | **Nivel 2** | **Nivel 1** | **Nivel 4** | **Nivel 1** | **Nivel 1** |
-| **Prueba Automatizada** | `test_rank_elite_operator_standard` | `test_rank_security_specialist` | `test_rank_vulnerability_hunter` | `test_rank_script_rookie_default` | `test_rank_elite_operator_impossible_shortcut` | `test_rank_impossible_below_shortcut` | `test_rank_wave_insufficient_downgrades` |
+| **Prueba Automatizada** | `test_standard_elite_operator_qualification` | `test_security_specialist_qualification` | `test_vulnerability_hunter_qualification` | `test_script_rookie_default_tier` | `test_impossible_mode_elite_operator_qualification` | `test_boundary_thresholds` | `test_boundary_thresholds` |
 
 ---
 
@@ -128,15 +128,15 @@ La pauta de evaluación establece que: *«Un caso descartado con argumento vale 
 
 | ID Caso de Prueba | Regla Asociada | Técnica Aplicada | Nombre de la Prueba Automatizada | Archivo de Prueba |
 | :--- | :--- | :--- | :--- | :--- |
-| **TC-COMBAT-001** | RN-01 | Partición Válida | `test_normal_damage_reduces_hp` | `tests/unit/test_combat_rules.py` |
-| **TC-COMBAT-002** | RN-01 | BVA (Límite 0) | `test_fatal_damage_triggers_game_over` | `tests/unit/test_combat_rules.py` |
-| **TC-COMBAT-003** | RN-01 | BVA / Regresión | `test_negative_hp_defect_regression` | `tests/unit/test_combat_rules.py` |
-| **TC-COMBAT-004** | RN-01 | Tabla Decisión (R5) | `test_hacking_mode_absorbs_with_shield` | `tests/unit/test_combat_rules.py` |
-| **TC-COMBAT-005** | RN-01 | Tabla Decisión (R1) | `test_invulnerable_prevents_damage` | `tests/unit/test_combat_rules.py` |
-| **TC-RANK-001** | RN-04 | BVA (1499 / 1500) | `test_rank_vulnerability_hunter_boundary` | `tests/unit/test_ranking_rules.py` |
-| **TC-RANK-002** | RN-04 | BVA (3999 / 4000) | `test_rank_security_specialist_boundary` | `tests/unit/test_ranking_rules.py` |
-| **TC-RANK-003** | RN-04 | BVA (9999 / 10000) | `test_rank_elite_operator_standard_boundary` | `tests/unit/test_ranking_rules.py` |
-| **TC-RANK-004** | RN-04 | Tabla Decisión (T5) | `test_rank_elite_operator_impossible_shortcut` | `tests/unit/test_ranking_rules.py` |
+| **TC-COMBAT-001** | RN-01 | Partición Válida | `test_damage_reduces_hp_correctly` | `tests/unit/test_combat_rules.py` |
+| **TC-COMBAT-002** | RN-01 | BVA (Límite 0) | `test_damage_exact_lethal_triggers_game_over` | `tests/unit/test_combat_rules.py` |
+| **TC-COMBAT-003** | RN-01 | BVA / Regresión | `test_defect_regression_hp_never_drops_negative` | `tests/unit/test_combat_rules.py` |
+| **TC-COMBAT-004** | RN-01 | Tabla Decisión (R5) | `test_shield_absorbs_damage_completely[HACKING]` | `tests/unit/test_combat_rules.py` |
+| **TC-COMBAT-005** | RN-01 | Tabla Decisión (R1) | `test_invulnerability_protects_against_all_damage` | `tests/unit/test_combat_rules.py` |
+| **TC-RANK-001** | RN-04 | BVA (1499 / 1500) | `test_boundary_thresholds` | `tests/unit/test_ranking_rules.py` |
+| **TC-RANK-002** | RN-04 | BVA (3999 / 4000) | `test_boundary_thresholds` | `tests/unit/test_ranking_rules.py` |
+| **TC-RANK-003** | RN-04 | BVA (9999 / 10000) | `test_boundary_thresholds` | `tests/unit/test_ranking_rules.py` |
+| **TC-RANK-004** | RN-04 | Tabla Decisión (T5) | `test_impossible_mode_elite_operator_qualification` | `tests/unit/test_ranking_rules.py` |
 | **TC-API-001** | RN-01 | Contrato HTTP | `test_rules_damage_endpoint_contract` | `tests/integration/test_api_contracts.py` |
 | **TC-API-002** | RN-05 | Validación 422 | `test_post_user_missing_required_fields_returns_422` | `tests/integration/test_api_contracts.py` |
 | **TC-API-003** | RN-02 / RN-04 | Persistencia DB | `test_full_user_score_lifecycle_and_rank_aggregation` | `tests/integration/test_api_contracts.py` |
@@ -144,3 +144,4 @@ La pauta de evaluación establece que: *«Un caso descartado con argumento vale 
 | **TC-E2E-002** | RN-01 | Recorrido Completo | `test_e2e_start_normal_mission_and_hud_display` | `tests/e2e/test_ui_journey.py` |
 | **TC-E2E-003** | RN-01 | Adaptación HUD | `test_e2e_hacking_mode_hud_adaptation` | `tests/e2e/test_ui_journey.py` |
 | **TC-E2E-004** | RN-01 | Alerta Hostil HUD | `test_e2e_impossible_mode_hud_and_vulnerability_warning` | `tests/e2e/test_ui_journey.py` |
+| **TC-E2E-005** | RN-04 | Visualización UI | `test_e2e_leaderboard_section_visibility` | `tests/e2e/test_ui_journey.py` |

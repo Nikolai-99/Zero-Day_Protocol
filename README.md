@@ -365,7 +365,7 @@ El juego se divide en tres modos con comportamiento de dificultad diferenciado:
 * **Impossible Mode**:
   * **Hitbox Castigadora**: Se incrementa a **0.55 unidades** (todo roce cuenta como impacto directo, desactivando el Graze).
   * Los enemigos básicos **KiT** requieren de **1 impacto** para ser derrotados (1 HP) manteniendo la alta dificultad de este modo.
-  * **IA de Predicción Dinámica**: Los enemigos básicos **KiT** estiman la posición futura del jugador (lead aiming) basándose en su velocidad, pero **solo cuando se mueve rápido (> 5.0 u/s)**. Si el jugador avanza de forma metódica o lenta, los disparos vuelven a ser directos.
+  * **IA de Predicción Dinámica**: Los enemigos básicos **KiT** estiman la posición futura del jugador (lead aiming) basándose en su velocidad, pero **solo cuando se mueve rápido (> 5.0 u/s)**. Si el jugador avanza de forma metódica o lenta, los disparos vuelven a ser directos. Esto otorga un margen de ventaja que el jugador puede aprovechar para superar este modo con mayor facilidad, es decir: lograr derrotar unos cuantos enemigos y luego proceder a hacer movimientos lentos y metódicos para esquivar proyectiles de manera controlada y predecible.
   * **Fuego Abrasador**: Cadencia de disparo de los enemigos **KiT** acelerada a **170 ms** con apuntado ultrarrápido (fijación de mira instantánea).
   * **Escasez de Recursos**: Los cubos blancos de escudo solo spawnean en la ronda 1 y en rondas múltiplos de 3 (rondas 3, 6, 9...), generando solo de 1 a 2 bloques de forma aleatoria.
   * Rondas infinitas como en Hacking Mode.

@@ -68,16 +68,16 @@ uv run pyrefly check
 # 2. Linter y formateador de código (Ruff) -> 0 diagnósticos silenciados
 uv run ruff check .
 
-# 3. Nivel 1: Pruebas unitarias de reglas de dominio puro (86 pruebas en ~0.15s)
+# 3. Nivel 1: Pruebas unitarias de reglas de dominio puro (88 pruebas en ~0.17s)
 uv run pytest tests/unit
 
-# 4. Nivel 2: Pruebas de integración de contratos API y SQLite (22 pruebas en ~0.50s)
+# 4. Nivel 2: Pruebas de integración de contratos API y SQLite en memoria (22 pruebas en ~0.35s)
 uv run pytest tests/integration
 
-# 5. Nivel 3: Pruebas extremo a extremo con Playwright (5 pruebas en ~13s)
+# 5. Nivel 3: Pruebas extremo a extremo con Playwright (6 pruebas en ~25s)
 uv run pytest tests/e2e
 
-# 6. Suite unificada completa (113 pruebas en verde)
+# 6. Suite unificada completa (116 pruebas en verde)
 uv run pytest
 ```
 
@@ -282,12 +282,13 @@ Durante el ciclo de desarrollo interactivo, el criterio humano detectó y corrig
 
 ### 4. Auditoría de Casos de Prueba Propuestos por el Agente (Evaluación Parcial 2 - Sección 3.E)
 En cumplimiento estricto del criterio de criterio frente al agente de la EP2:
-* **Casos Propuestos por el Agente y ACEPTADOS por el Desarrollador:**
-  1. *Frontera de atajo en modo IMPOSSIBLE para `RankingRules`:* El agente propuso evaluar exhaustivamente el borde numérico exacto de 5,000 pts y Oleada 3 (`test_rank_elite_operator_impossible_shortcut`), lo que garantizó la cobertura de una clase de equivalencia no nominal omitida en la primera entrega.
-  2. *Rechazo estricto con HTTP 422 en esquemas Pydantic:* El agente propuso un caso de prueba de contrato que envía un `user_id` sin el campo `username` a `/api/users`, verificando que la API consumible responda con `422 Unprocessable Entity` y el detalle estructurado de validación (`test_post_user_missing_required_fields_returns_422`), blindando la API ante el Defecto 2 de la verificación en vivo.
-* **Casos Propuestos por el Agente y DESCARTADOS CON FUNDAMENTO por el Desarrollador:**
+* **Casos Propuestos por el Agente y ACEPTADOS por el Desarrollador en la EP2:**
+  1. *Rechazo estricto con HTTP 422 en esquemas Pydantic:* El agente propuso un caso de prueba de contrato que envía un `user_id` sin el campo `username` a `/api/users`, verificando que la API consumible responda con `422 Unprocessable Entity` y el detalle estructurado de validación (`test_post_user_missing_required_fields_returns_422`), blindando la API ante el Defecto 2 de la verificación en vivo.
+  2. *Verificación E2E de la Terminal de Inyección / Hacking Quiz:* El agente propuso un flujo completo con Playwright (`test_e2e_hacking_quiz_modal_interaction_and_rewards`) que interactúa con la ventana modal del Quiz, selecciona un exploit y valida la entrega de escudos Matrix y puntos en el DOM de la aplicación web.
+  3. *Aislamiento dinámico de BD en Playwright:* El agente propuso parametrizar `DATABASE_URL` hacia una base temporal aislada en `tests/e2e/conftest.py`, evitando la polución de `zero_day_protocol.db`.
+* **Casos Propuestos por el Agente y DESCARTADOS CON FUNDAMENTO por el Desarrollador en la EP2:**
   1. *Aserción de coordenadas de mallas 3D en Playwright:* El agente propuso escribir una prueba E2E que calculara las coordenadas X, Y, Z de las partículas y mallas de los virus en el Canvas de WebGL mediante capturas periódicas.  
-     **Fundamento del rechazo:** Caso descartado por ser técnicamente inviable e inestable (*flaky test*). La emulación por software de WebGL en entornos headless de Chromium no garantiza sincronización de microsegundos a 60 FPS, generando falsos negativos. El desarrollador descartó la inspección del Canvas y redirigió la prueba a la verificación determinista en el DOM del HUD reactivo (`System Status`, `HP 100%`, `Shield Matrix`).
+     **Fundamento del rechazo:** Caso descartado por ser técnicamente inviable e inestable (*flaky test*). La emulación por software de WebGL en entornos headless de Chromium no garantiza sincronización de microsegundos a 60 FPS, generando falsos negativos. El desarrollador descartó la inspección del Canvas y redirigió la prueba a la verificación determinista en el DOM del HUD reactivo (`System Status`, `HP 100%`, `Shield Matrix`) y la terminal del Quiz.
   2. *Prueba unitaria con Oleada negativa (`wave = -5`) en `ScoreRules`:* El agente propuso escribir una prueba unitaria pasando oleadas negativas a la fórmula aritmética.  
      **Fundamento del rechazo:** Caso descartado por redundancia entre capas. La precondición de entrada está rígidamente asegurada por el esquema Pydantic en FastAPI (`Field(ge=1)`) y por el store de Zustand en el cliente. Escribir pruebas repetitivas de lo mismo en múltiples capas viola el principio de la pirámide de testing (*"tres copias de lo mismo no hacen una pirámide"*).
 

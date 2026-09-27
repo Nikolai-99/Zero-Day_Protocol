@@ -64,6 +64,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
       set({ shieldStacks: current + 1 });
     }
   },
+  setShieldStacks: (n: number) => set({ shieldStacks: Math.max(0, Math.min(5, n)) }),
+  addScore: (n: number) => set((state) => ({ score: state.score + n })),
   consumeShieldStack: () => {
     const current = get().shieldStacks;
     if (current > 0) {

@@ -7,8 +7,9 @@ export interface QuizQuestion {
   id: string;
   question: string;
   options: string[];
-  correctIndex: number;
-  hint: string;
+  correctIndex?: number;
+  correct_index?: number;
+  hint?: string;
 }
 
 export interface Entity {
@@ -81,6 +82,8 @@ export interface GameStore {
   setGameState: (s: GameState) => void;
   setGameMode: (m: GameMode) => void;
   addShieldStack: () => void;
+  setShieldStacks: (n: number) => void;
+  addScore: (n: number) => void;
   consumeShieldStack: () => boolean;
   setInvulnerable: (b: boolean) => void;
   setDashState: (direction: 'left' | 'right' | null, startTime: number) => void;

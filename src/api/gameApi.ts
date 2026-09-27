@@ -26,6 +26,34 @@ export const gameApi = {
     }
   },
 
+  async evaluateQuiz(
+    selectedOption: number,
+    correctOption: number,
+    attemptsUsed: number,
+    currentShields: number
+  ): Promise<{ success: boolean; new_shields: number; bonus_score: number; shields_gained: number } | null> {
+    try {
+      const res = await fetch(`${API_BASE}/rules/quiz`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          selected_option: selectedOption,
+          correct_option: correctOption,
+          attempts_used: attemptsUsed,
+          current_shields: currentShields,
+        }),
+      });
+      if (!res.ok) throw new Error('API error evaluating quiz');
+      return await res.json();
+    } catch (e) {
+      console.error('[API] Error al evaluar quiz:', e);
+      return null;
+    }
+  },
+
   async saveScore(
     userId: string,
     score: number,

@@ -116,7 +116,7 @@ export const HackingQuizModal: React.FC<HackingQuizModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn pointer-events-auto">
-      <div className="relative w-full max-w-2xl bg-neutral-950 border border-green-500/60 shadow-[0_0_35px_rgba(34,197,94,0.25)] rounded p-6 font-mono text-green-400">
+      <div className="relative w-full max-w-2xl max-h-[92vh] overflow-y-auto bg-neutral-950 border border-green-500/60 shadow-[0_0_35px_rgba(34,197,94,0.25)] rounded p-6 font-mono text-green-400">
         {/* Terminal Header */}
         <div className="flex items-center justify-between border-b border-green-500/40 pb-3 mb-4">
           <div className="flex items-center gap-2">
@@ -146,6 +146,32 @@ export const HackingQuizModal: React.FC<HackingQuizModalProps> = ({
             [CERRAR TERMINAL]
           </button>
         </div>
+
+        {/* Banner Informativo (Solo en Menú Principal / Modo Simulación) */}
+        {!isBossMode && (
+          <div className="mb-4 p-3.5 bg-neutral-900/90 border border-green-500/40 rounded text-[11px] font-mono leading-relaxed space-y-2.5 shadow-inner">
+            <p className="text-green-300 font-semibold flex items-start gap-2">
+              <span className="inline-block w-2 h-2 mt-1 bg-green-400 rounded-full animate-pulse flex-shrink-0" />
+              <span>Esta sección sirve para probar la funcionalidad del Quiz de hacking, para que no sea requerido llegar a la oleada 5.</span>
+            </p>
+            <div className="pt-2 border-t border-neutral-800 text-[10px] text-neutral-300 space-y-1.5">
+              <div className="text-green-400 uppercase tracking-wider font-bold">
+                Condiciones de activación durante el gameplay:
+              </div>
+              <ul className="list-disc list-inside space-y-1 text-neutral-300 pl-1">
+                <li>
+                  <strong className="text-yellow-400">Oleada:</strong> Exclusivo del modo <span className="text-white font-bold">HACKING</span>. Aparece de manera obligatoria cada 5 oleadas (Oleadas 5, 10, 15 y 20).
+                </li>
+                <li>
+                  <strong className="text-cyan-400">Tipo de enemigo:</strong> Vinculado al enemigo especial circular (<span className="text-cyan-300 font-bold">CORE</span>). El enemigo triangular (<span className="text-purple-400 font-bold">TRIANGLE</span>) en ningún momento libera el quiz.
+                </li>
+                <li>
+                  <strong className="text-red-400">Enemigos derrotados:</strong> El jefe circular cuenta con escudos invulnerables que solo se desactivan tras eliminar a todos los esbirros normales de la ronda. Al derrotar a todos los enemigos y destruir finalmente al jefe circular sin ningún enemigo presente en la arena, se despliega la terminal del Quiz.
+                </li>
+              </ul>
+            </div>
+          </div>
+        )}
 
         {/* Status Indicators */}
         <div className="flex items-center justify-between text-[11px] text-neutral-400 border border-green-950/60 bg-green-950/10 px-3 py-1.5 mb-4">

@@ -171,3 +171,23 @@ class TestCombatRulesSpecialConditions:
                 game_mode="ULTRA_GLSL",
                 damage_amount=20,
             )
+
+    def test_hp_exceeding_maximum_raises_error(self):
+        """Vida superior a MAX_HP (100) es clase inválida y debe lanzar ValueError."""
+        with pytest.raises(ValueError, match="no puede exceder el máximo"):
+            CombatRules.resolve_damage(
+                current_hp=150,
+                current_shields=0,
+                game_mode="NORMAL",
+                damage_amount=10,
+            )
+
+    def test_zero_damage_raises_error(self):
+        """Daño 0 (impacto nulo) es clase inválida y debe lanzar ValueError."""
+        with pytest.raises(ValueError, match="El monto de daño no puede ser 0"):
+            CombatRules.resolve_damage(
+                current_hp=100,
+                current_shields=0,
+                game_mode="NORMAL",
+                damage_amount=0,
+            )

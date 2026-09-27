@@ -95,6 +95,14 @@ class CombatRules:
         if game_mode not in valid_modes:
             raise ValueError(f"Modo de juego inválido: '{game_mode}'. Válidos: {valid_modes}")
 
+        if current_hp > cls.MAX_HP:
+            raise ValueError(
+                f"La vida actual ({current_hp}) no puede exceder el máximo ({cls.MAX_HP})"
+            )
+
+        if damage_amount == 0:
+            raise ValueError("El monto de daño no puede ser 0 (impacto nulo no permitido)")
+
         # Jugador ya muerto no procesa más impactos
         if current_hp <= 0:
             return DamageResult(

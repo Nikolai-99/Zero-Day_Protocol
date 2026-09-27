@@ -82,9 +82,32 @@ export const MainMenu: React.FC<MainMenuProps> = ({
             <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
             <span>Terminal de Hackeo // Quiz</span>
           </button>
-          <span className="text-[9px] text-neutral-500 mt-1.5 font-mono tracking-wider text-center">
-            Simulador de Inyección &amp; Práctica de Exploits
-          </span>
+          
+          <div className="mt-3 w-full max-w-lg bg-neutral-950/80 border border-green-500/30 rounded p-3 text-left font-mono">
+            <p className="text-[10px] text-green-300 leading-relaxed font-semibold mb-2">
+              Esta sección sirve para probar la funcionalidad del Quiz de hacking, para que no sea requerido llegar a la oleada 5.
+            </p>
+            <div className="border-t border-neutral-800 pt-2 text-[9px] text-neutral-400 space-y-1">
+              <span className="text-[9px] uppercase tracking-wider text-green-400 font-bold block mb-1">
+                Condiciones para activar el Quiz durante el Gameplay:
+              </span>
+              <div className="flex items-start gap-1.5">
+                <span className="text-green-500 font-bold">1. Oleada:</span>
+                <span>En Modo Hacking, aparece de forma obligatoria cada 5 oleadas (Oleadas 5, 10, 15 y 20).</span>
+              </div>
+              <div className="flex items-start gap-1.5">
+                <span className="text-green-500 font-bold">2. Tipo de enemigo:</span>
+                <span>Únicamente lo libera el enemigo especial circular (CORE). El enemigo triangular (TRIANGLE) nunca activa el quiz.</span>
+              </div>
+              <div className="flex items-start gap-1.5">
+                <span className="text-green-500 font-bold">3. Enemigos derrotados:</span>
+                <span>El jefe circular posee escudos invulnerables. Es obligatorio derrotar primero a todos los enemigos normales para desactivar su escudo y así poder destruirlo.</span>
+              </div>
+              <p className="text-[8.5px] text-neutral-500 pt-1 border-t border-neutral-900 mt-1">
+                * Resultado del Quiz: Si apruebas, avanzas a la siguiente oleada con bonificación de escudos. Si fallas, la oleada se reinicia.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
 

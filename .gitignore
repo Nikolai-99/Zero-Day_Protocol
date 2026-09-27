@@ -39,3 +39,6 @@ htmlcov/
 .env.local
 *.db
 !zero_day_protocol.db.example
+
+# Course Requirements
+requirement/

@@ -175,7 +175,6 @@ Zero-Day_Protocol/
 ├── DISENO-DE-CASOS.md            # Diseño formal de casos (EP, BVA, tablas de decisión, descartados)
 ├── PLAN-DE-PRUEBAS.md            # Plan maestro de pruebas según norma ISO/IEC/IEEE 29119
 ├── Suite_de_Pruebas_Ev2.md       # Documento de arquitectura para Obsidian con diagramas Mermaid
-├── PROPUESTA_MEJORAS_ROGUELIKE.md# Propuesta de extensión de mecánicas y compatibilidad
 ├── pyproject.toml                # Configuración de uv, ruff, pyrefly y pytest
 ├── .python-version               # Versión de Python fijada (CPython 3.12)
 ├── uv.lock                       # Lockfile reproducible de dependencias de Python
@@ -252,7 +251,6 @@ uv run pytest
 > Para conocer la matriz de trazabilidad ISO/IEC 25010, la justificación de diagnósticos y el registro estructurado de hallazgos de auditoría, consulte el documento [`CALIDAD.md`](CALIDAD.md).
 > Para revisar el diseño formal de casos de prueba (Particiones de Equivalencia, BVA y Tablas de Decisión), consulte [`DISENO-DE-CASOS.md`](DISENO-DE-CASOS.md) y [`PLAN-DE-PRUEBAS.md`](PLAN-DE-PRUEBAS.md).
 > Para visualizar los diagramas de arquitectura en Obsidian, consulte [`Suite_de_Pruebas_Ev2.md`](Suite_de_Pruebas_Ev2.md).
-> Para revisar la propuesta de diseño de mecánicas roguelike y compatibilidad futura, consulte [`PROPUESTA_MEJORAS_ROGUELIKE.md`](PROPUESTA_MEJORAS_ROGUELIKE.md).
 
 ---
 
@@ -267,7 +265,7 @@ En cumplimiento riguroso de los lineamientos de transparencia de las Evaluacione
   - Migración a modelos SQLAlchemy 2.0 (`Mapped[T]`) y resolución de inconsistencias de tipado estático con `pyrefly`.
   - Configuración y conformidad de linter con `ruff` (reglas E, F, W, I) con cero diagnósticos silenciados.
   - Implementación de la batería de 100 pruebas en `pytest` (cobertura nominal, frontera, excepciones y regresión de defectos).
-  - Estructuración de la documentación de calidad ISO/IEC 25010 en `CALIDAD.md` y algoritmos en `testing_document.md`.
+  - Estructuración de la documentación de calidad ISO/IEC 25010 en `CALIDAD.md` y diseño formal de casos en `DISENO-DE-CASOS.md`.
 
 ### 2. Qué Revisó y Corrigió el Desarrollador (Errores y Límites Detectados)
 Durante el ciclo de desarrollo interactivo, el criterio humano detectó y corrigió las siguientes propuestas iniciales subóptimas del agente:

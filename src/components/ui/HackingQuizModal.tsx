@@ -7,9 +7,20 @@ import { audioSystem } from '../../utils/audioSystem';
 interface HackingQuizModalProps {
   isOpen: boolean;
   onClose: () => void;
+  isBossMode?: boolean;
+  wave?: number;
+  onBossSuccess?: () => void;
+  onBossFail?: () => void;
 }
 
-export const HackingQuizModal: React.FC<HackingQuizModalProps> = ({ isOpen, onClose }) => {
+export const HackingQuizModal: React.FC<HackingQuizModalProps> = ({ 
+  isOpen, 
+  onClose,
+  isBossMode = false,
+  wave = 1,
+  onBossSuccess,
+  onBossFail,
+}) => {
   const { shieldStacks, setShieldStacks, addScore } = useGameStore();
 
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
@@ -21,25 +32,32 @@ export const HackingQuizModal: React.FC<HackingQuizModalProps> = ({ isOpen, onCl
   }>({ type: null, message: '' });
   const [isEvaluating, setIsEvaluating] = useState(false);
   const [isAnsweredCorrectly, setIsAnsweredCorrectly] = useState(false);
+  const [isFailed, setIsFailed] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
       gameApi.getQuestions().then((qList) => {
         setQuestions(qList);
-        setCurrentIndex(0);
+        if (isBossMode && wave) {
+          const bossQIndex = (Math.floor(wave / 5) - 1) % Math.max(1, qList.length);
+          setCurrentIndex(bossQIndex >= 0 ? bossQIndex : 0);
+        } else {
+          setCurrentIndex(0);
+        }
         setAttemptsUsed(1);
         setIsAnsweredCorrectly(false);
+        setIsFailed(false);
         setFeedback({ type: null, message: '' });
       });
     }
-  }, [isOpen]);
+  }, [isOpen, isBossMode, wave]);
 
   if (!isOpen) return null;
 
   const currentQ = questions[currentIndex];
 
   const handleSelectOption = async (optionIndex: number) => {
-    if (!currentQ || isEvaluating || isAnsweredCorrectly) return;
+    if (!currentQ || isEvaluating || isAnsweredCorrectly || isFailed) return;
 
     setIsEvaluating(true);
     try {
@@ -60,11 +78,19 @@ export const HackingQuizModal: React.FC<HackingQuizModalProps> = ({ isOpen, onCl
           message: `INYECCIÓN EXITOSA: +${res.shields_gained} ESCUDO(S) // +${res.bonus_score} PUNTOS`,
         });
       } else {
-        setAttemptsUsed((prev) => prev + 1);
-        setFeedback({
-          type: 'error',
-          message: 'ACCESO DENEGADO: Inyección errónea. Vector vulnerable aún activo. Reintenta (+1 escudo disponible).',
-        });
+        if (isBossMode) {
+          setIsFailed(true);
+          setFeedback({
+            type: 'error',
+            message: `ACCESO DENEGADO: Inyección errónea. Contramedida del Núcleo activada: la oleada ${wave} se reiniciará.`,
+          });
+        } else {
+          setAttemptsUsed((prev) => prev + 1);
+          setFeedback({
+            type: 'error',
+            message: 'ACCESO DENEGADO: Inyección errónea. Vector vulnerable aún activo. Reintenta (+1 escudo disponible).',
+          });
+        }
       }
     } catch (e) {
       console.error('Error al evaluar quiz:', e);
@@ -95,12 +121,26 @@ export const HackingQuizModal: React.FC<HackingQuizModalProps> = ({ isOpen, onCl
         <div className="flex items-center justify-between border-b border-green-500/40 pb-3 mb-4">
           <div className="flex items-center gap-2">
             <span className="inline-block w-3 h-3 bg-green-500 rounded-full animate-ping" />
-            <span className="text-xs uppercase tracking-widest font-bold text-green-400">
-              TERMINAL DE INYECCIÓN DE CÓDIGO // HACKING QUIZ (RN-03)
-            </span>
+            <div className="flex flex-col">
+              <span className="text-xs uppercase tracking-widest font-bold text-green-400">
+                TERMINAL DE INYECCIÓN DE CÓDIGO // HACKING QUIZ (RN-03)
+              </span>
+              <span className="text-[10px] text-green-600 font-mono tracking-wider">
+                {isBossMode 
+                  ? `[MODO COMBATE // JEFE CIRCULAR OLEADA ${wave}]` 
+                  : '[MODO TEST // EVALUACIÓN RN-03]'}
+              </span>
+            </div>
           </div>
           <button
-            onClick={onClose}
+            onClick={() => {
+              if (isBossMode && !isAnsweredCorrectly) {
+                if (onBossFail) onBossFail();
+                else onClose();
+              } else {
+                onClose();
+              }
+            }}
             className="text-xs text-neutral-400 hover:text-white border border-neutral-700 hover:border-white px-2 py-0.5 transition-colors uppercase"
           >
             [CERRAR TERMINAL]
@@ -144,7 +184,7 @@ export const HackingQuizModal: React.FC<HackingQuizModalProps> = ({ isOpen, onCl
               {currentQ.options.map((option, idx) => (
                 <button
                   key={idx}
-                  disabled={isEvaluating || isAnsweredCorrectly}
+                  disabled={isEvaluating || isAnsweredCorrectly || isFailed}
                   onClick={() => handleSelectOption(idx)}
                   className={`w-full text-left p-3 border text-xs font-mono transition-all flex items-start gap-3 rounded ${
                     isAnsweredCorrectly && idx === (currentQ.correctIndex ?? currentQ.correct_index)
@@ -172,17 +212,38 @@ export const HackingQuizModal: React.FC<HackingQuizModalProps> = ({ isOpen, onCl
             )}
 
             {/* Next / Close Actions */}
-            {isAnsweredCorrectly && (
-              <div className="pt-2 flex justify-end">
-                <button
-                  onClick={handleNext}
-                  className="px-5 py-2 border border-green-500 bg-green-500 text-black font-bold text-xs uppercase tracking-widest hover:bg-green-400 transition-all shadow-[0_0_15px_rgba(34,197,94,0.4)]"
-                >
-                  {currentIndex < questions.length - 1
-                    ? 'Siguiente Vector >>'
-                    : 'Finalizar Inyección (Cerrar)'}
-                </button>
+            {isBossMode ? (
+              <div className="pt-2 flex justify-end gap-2">
+                {isAnsweredCorrectly && (
+                  <button
+                    onClick={() => (onBossSuccess ? onBossSuccess() : onClose())}
+                    className="px-5 py-2 border border-green-500 bg-green-500 text-black font-bold text-xs uppercase tracking-widest hover:bg-green-400 transition-all shadow-[0_0_15px_rgba(34,197,94,0.4)]"
+                  >
+                    {wave >= 20 ? 'RECLAMAR VICTORIA >>' : `AVANZAR A LA OLEADA ${wave + 1} >>`}
+                  </button>
+                )}
+                {isFailed && (
+                  <button
+                    onClick={() => (onBossFail ? onBossFail() : onClose())}
+                    className="px-5 py-2 border border-red-500 bg-red-600 text-white font-bold text-xs uppercase tracking-widest hover:bg-red-500 transition-all shadow-[0_0_15px_rgba(239,68,68,0.4)]"
+                  >
+                    REINICIAR OLEADA {wave} &gt;&gt;
+                  </button>
+                )}
               </div>
+            ) : (
+              isAnsweredCorrectly && (
+                <div className="pt-2 flex justify-end">
+                  <button
+                    onClick={handleNext}
+                    className="px-5 py-2 border border-green-500 bg-green-500 text-black font-bold text-xs uppercase tracking-widest hover:bg-green-400 transition-all shadow-[0_0_15px_rgba(34,197,94,0.4)]"
+                  >
+                    {currentIndex < questions.length - 1
+                      ? 'Siguiente Vector >>'
+                      : 'Finalizar Inyección (Cerrar)'}
+                  </button>
+                </div>
+              )
             )}
           </div>
         ) : (

@@ -40,11 +40,16 @@ const initialState = {
   isInvulnerable: false,
   dashStartTime: 0,
   dashDirection: null as 'left' | 'right' | null,
+  bossQuiz: {
+    isOpen: false,
+    wave: 1,
+    status: 'IDLE' as const,
+  },
 };
 
 export const useGameStore = create<GameStore>((set, get) => ({
   ...initialState,
-  maxWaves: 5,
+  maxWaves: 20, // Modo por defecto es HACKING (20 oleadas)
   
   // API & DB State
   userId: player.id,
@@ -57,7 +62,19 @@ export const useGameStore = create<GameStore>((set, get) => ({
   setHp: (n) => set({ hp: Math.max(0, n) }),
   setWave: (n) => set({ wave: n }),
   setGameState: (s) => set({ gameState: s }),
-  setGameMode: (m) => set({ gameMode: m }),
+  setGameMode: (m) => set({ 
+    gameMode: m, 
+    maxWaves: m === 'HACKING' ? 20 : (m === 'NORMAL' ? 5 : 9999) 
+  }),
+  openBossQuiz: (wave: number) => set({
+    bossQuiz: { isOpen: true, wave, status: 'PENDING' }
+  }),
+  resolveBossQuiz: (success: boolean) => set((state) => ({
+    bossQuiz: { ...state.bossQuiz, isOpen: false, status: success ? 'SUCCESS' : 'FAILED' }
+  })),
+  closeBossQuiz: () => set((state) => ({
+    bossQuiz: { ...state.bossQuiz, isOpen: false, status: 'IDLE' }
+  })),
   addShieldStack: () => {
     const current = get().shieldStacks;
     if (current < 5) {
@@ -147,6 +164,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   reset: () => {
     set((state) => ({
       ...initialState,
+      maxWaves: 20,
       score: 0,
       savedScore: 0,
       userId: state.userId,
@@ -154,12 +172,15 @@ export const useGameStore = create<GameStore>((set, get) => ({
       isNamed: state.isNamed,
       leaderboard: state.leaderboard,
       devMode: state.devMode,
+      bossQuiz: { isOpen: false, wave: 1, status: 'IDLE' },
     }));
   },
   
   restartGame: () => {
+    const mode = get().gameMode;
     set((state) => ({
       ...initialState,
+      maxWaves: mode === 'HACKING' ? 20 : (mode === 'NORMAL' ? 5 : 9999),
       score: 0,
       savedScore: 0,
       gameMode: state.gameMode, // Keep the current mode
@@ -169,6 +190,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       isNamed: state.isNamed,
       leaderboard: state.leaderboard,
       devMode: state.devMode,
+      bossQuiz: { isOpen: false, wave: 1, status: 'IDLE' },
     }));
   },
 }));

@@ -52,6 +52,9 @@ export const GameScene: React.FC<GameSceneProps> = ({ onRestart }) => {
   const gameState = useGameStore((state) => state.gameState);
   const gameMode = useGameStore((state) => state.gameMode);
   const wave = useGameStore((state) => state.wave);
+  const bossQuiz = useGameStore((state) => state.bossQuiz);
+  const openBossQuiz = useGameStore((state) => state.openBossQuiz);
+  const closeBossQuiz = useGameStore((state) => state.closeBossQuiz);
   const setScore = useGameStore.getState().setScore;
   const setHp = useGameStore.getState().setHp;
   const setWave = useGameStore.getState().setWave;
@@ -117,18 +120,23 @@ export const GameScene: React.FC<GameSceneProps> = ({ onRestart }) => {
     const newEnemies: Enemy[] = [];
     const playerPos = playerRef.current ? playerRef.current.position.clone() : new THREE.Vector3(0, 0, 0);
 
+    // Limpiar proyectiles al iniciar o reiniciar oleada para evitar impactos residuales
+    bulletsRef.current = [];
+
     // DETERMINE SPECIAL ENEMY SPAWN
-    // Rule: Wave 1 guarantees the TRIANGLE special enemy for testing as requested. Wave 2 guarantees a special enemy. Waves 3+ have 60% chance.
-    const spawnSpecial = waveNum === 1 || waveNum === 2 || (waveNum > 2 && Math.random() < 0.6);
+    // En modo HACKING: Cada 5 oleadas (waveNum % 5 === 0) aparece obligatoriamente el jefe circular (CORE).
+    // El enemigo TRIANGLE en ningún momento libera el quiz.
+    const isHackingBossWave = gameMode === 'HACKING' && waveNum % 5 === 0;
+    const spawnSpecial = isHackingBossWave || waveNum === 1 || waveNum === 2 || (waveNum > 2 && Math.random() < 0.6);
     
-    console.log(`[SPAWN] Iniciando Ola ${waveNum}. Especial: ${spawnSpecial}`);
+    console.log(`[SPAWN] Iniciando Ola ${waveNum}. Especial: ${spawnSpecial}, Jefe Circular: ${isHackingBossWave}`);
 
     // Logic: If special enemy spawns, NO blocks.
     if (spawnSpecial) {
         blocksRef.current = []; // Clear blocks
 
-        // Force Triangle in Wave 1 for testing
-        const useTriangle = waveNum === 1 || Math.random() < 0.4;
+        // En oleadas de jefe HACKING (cada 5 oleadas), el enemigo DEBE ser CORE (circular)
+        const useTriangle = !isHackingBossWave && (waveNum === 1 || Math.random() < 0.4);
 
         const specialPos = getRandomSpawnPos(18, 24);
         const specialDir = new THREE.Vector3().subVectors(playerPos, specialPos).normalize();
@@ -151,7 +159,7 @@ export const GameScene: React.FC<GameSceneProps> = ({ onRestart }) => {
             });
             spawnParticles(specialPos, COLORS.ENEMY_TRIANGLE, 20, true);
         } else {
-             console.log(`[SPAWN] Aparece enemigo especial: CORE en la posicion`, specialPos);
+             console.log(`[SPAWN] Aparece enemigo especial: CORE (CIRCULAR) en la posicion`, specialPos);
              newEnemies.push({
                 id: getNextEntityId(),
                 type: 'CORE',
@@ -176,13 +184,17 @@ export const GameScene: React.FC<GameSceneProps> = ({ onRestart }) => {
 
     // SPAWN NORMAL ENEMIES
     // Normal mode: scales from 15 (wave 1) to 30 (wave 5)
-    // Hacking/Impossible modes: scales from 15 (wave 1) to 50 (wave 30+)
+    // Hacking mode: scales from 15 (wave 1) to 50 (wave 20, maxWaves=20)
+    // Impossible mode: scales from 15 (wave 1) to 50 (wave 30+)
     let normalCount = 15;
     if (gameMode === 'NORMAL') {
         const progress = Math.min(1.0, (waveNum - 1) / 4); // maxWaves is 5
         normalCount = Math.round(15 + progress * 15); // 15 (w1) to 30 (w5)
+    } else if (gameMode === 'HACKING') {
+        const progress = Math.min(1.0, (waveNum - 1) / 19); // maxWaves is 20
+        normalCount = Math.round(15 + progress * 35); // 15 (w1) to 50 (w20)
     } else {
-        // HACKING or IMPOSSIBLE
+        // IMPOSSIBLE
         const progress = Math.min(1.0, (waveNum - 1) / 29);
         normalCount = Math.round(15 + progress * 35); // 15 (w1) to 50 (w30)
     }
@@ -226,6 +238,32 @@ export const GameScene: React.FC<GameSceneProps> = ({ onRestart }) => {
       return new THREE.Vector3(x, 0, z);
   };
 
+  // --- Manejo de la resolución del Quiz de Jefe (Hacking mode, cada 5 oleadas) ---
+  useEffect(() => {
+    if (bossQuiz.status === 'SUCCESS') {
+      const { wave: currentWave, maxWaves } = useGameStore.getState();
+      closeBossQuiz();
+      if (currentWave >= maxWaves) {
+        setGameState('VICTORY');
+      } else {
+        const nextWave = currentWave + 1;
+        setWave(nextWave);
+        spawnWave(nextWave);
+        setTimeout(() => {
+          document.body.requestPointerLock?.();
+        }, 100);
+      }
+    } else if (bossQuiz.status === 'FAILED') {
+      const { wave: currentWave } = useGameStore.getState();
+      closeBossQuiz();
+      // Reinicia la ronda actual según la regla del Hacking Mode
+      spawnWave(currentWave);
+      setTimeout(() => {
+        document.body.requestPointerLock?.();
+      }, 100);
+    }
+  }, [bossQuiz.status, closeBossQuiz, setGameState, setWave]);
+
   // --- Inicialización y notificación de carga (Modo silencioso) ---
   // Notifica a Electron que la app está lista sin depender de archivos de audio
   useEffect(() => {
@@ -246,6 +284,7 @@ export const GameScene: React.FC<GameSceneProps> = ({ onRestart }) => {
     setScore(0);
     setWave(1);
     isTransitioning.current = false;
+    closeBossQuiz();
 
     if (playerRef.current) playerRef.current.position.set(0, 0, 0);
     
@@ -369,7 +408,7 @@ export const GameScene: React.FC<GameSceneProps> = ({ onRestart }) => {
     // Actualizar análisis espectral de bajos en cada frame
     audioSystem.update();
 
-    if (gameState !== 'PLAYING') return;
+    if (gameState !== 'PLAYING' || bossQuiz.isOpen) return;
 
     // playerPosition static scratchpad update
     if (playerRef.current) {
@@ -380,7 +419,11 @@ export const GameScene: React.FC<GameSceneProps> = ({ onRestart }) => {
     const playerPosition = _playerPosition;
 
     const { wave, gameMode, dashDirection } = useGameStore.getState();
-    const hackingSpeedMultiplier = (gameMode === 'HACKING' || gameMode === 'IMPOSSIBLE') ? (1.0 + Math.min(1.0, (wave - 1) / 29) * 0.7) : 1.0;
+    const hackingSpeedMultiplier = (gameMode === 'HACKING') 
+        ? (1.0 + Math.min(1.0, (wave - 1) / 19) * 0.7)
+        : (gameMode === 'IMPOSSIBLE') 
+            ? (1.0 + Math.min(1.0, (wave - 1) / 29) * 0.7) 
+            : 1.0;
 
     // Trigger burst of particles at start of dash animation
     if (dashDirection !== lastDashDirection.current) {
@@ -420,7 +463,7 @@ export const GameScene: React.FC<GameSceneProps> = ({ onRestart }) => {
             
             const { wave: currentWave, maxWaves, gameMode: currentMode } = useGameStore.getState();
 
-            if (currentMode === 'HACKING' || currentMode === 'IMPOSSIBLE') {
+            if (currentMode === 'IMPOSSIBLE') {
                 const nextWave = currentWave + 1;
                 spawnWave(nextWave);
                 setWave(nextWave);
@@ -612,9 +655,18 @@ export const GameScene: React.FC<GameSceneProps> = ({ onRestart }) => {
 
     // --- 6. Wave Check ---
     const allEnemiesDead = enemiesRef.current.every(e => !e.active);
-    if (allEnemiesDead && !isTransitioning.current) {
-        isTransitioning.current = true;
-        waveTransitionTimer.current = 0.5; // Fast transition 
+    if (allEnemiesDead && !isTransitioning.current && bossQuiz.status === 'IDLE') {
+        const isHackingBossWave = gameMode === 'HACKING' && wave % 5 === 0;
+        if (isHackingBossWave) {
+            // Liberar puntero para permitir interacción con la terminal de quiz
+            if (document.exitPointerLock) {
+                document.exitPointerLock();
+            }
+            openBossQuiz(wave);
+        } else {
+            isTransitioning.current = true;
+            waveTransitionTimer.current = 0.5; // Fast transition 
+        }
     }
   });
   
@@ -628,7 +680,7 @@ export const GameScene: React.FC<GameSceneProps> = ({ onRestart }) => {
         visualCursorRef={visualCursorRef}
         onShoot={handlePlayerShoot}
         checkCollision={checkPlayerCollision}
-        isGameActive={gameState === 'PLAYING'}
+        isGameActive={gameState === 'PLAYING' && !bossQuiz.isOpen}
       />
 
       {enemiesRef.current.map(enemy => (

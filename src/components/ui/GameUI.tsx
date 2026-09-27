@@ -16,7 +16,7 @@ export const GameUI: React.FC<GameUIProps> = ({ onRestart }) => {
   const { 
     score, hp, gameState, setGameState, wave, maxWaves, setGameMode, reset, restartGame, gameMode,
     userId, username, leaderboard, loadLeaderboard, saveSession, setPlayerInfo,
-    devMode, loadDevMode, toggleDevMode, shieldStacks
+    devMode, loadDevMode, toggleDevMode, shieldStacks, bossQuiz, resolveBossQuiz
   } = useGameStore();
 
   const [isFullScreen, setIsFullScreen] = useState(false);
@@ -213,12 +213,6 @@ export const GameUI: React.FC<GameUIProps> = ({ onRestart }) => {
                 Resume Simulation
               </button>
               <button 
-                onClick={() => setIsQuizOpen(true)}
-                className="border border-yellow-500/50 bg-yellow-950/20 text-yellow-400 hover:bg-yellow-500 hover:text-black transition-colors px-6 py-2 text-xs tracking-widest uppercase font-bold"
-              >
-                Inyección // Hacking Quiz
-              </button>
-              <button 
                 onClick={handleReturnToMenu}
                 className="border border-neutral-600 bg-neutral-900/30 text-neutral-400 hover:bg-white hover:text-black transition-colors px-6 py-2 text-xs tracking-widest uppercase font-bold"
               >
@@ -351,11 +345,24 @@ export const GameUI: React.FC<GameUIProps> = ({ onRestart }) => {
         </div>
       )}
 
-      {/* Terminal de Inyección / Hacking Quiz */}
+      {/* Terminal de Inyección / Hacking Quiz (Modo Test desde el Menú Principal) */}
       <HackingQuizModal 
         isOpen={isQuizOpen} 
+        isBossMode={false}
         onClose={() => setIsQuizOpen(false)} 
       />
+
+      {/* Terminal de Inyección / Hacking Quiz (Jefe Circular en Partida cada 5 oleadas) */}
+      {bossQuiz.isOpen && (
+        <HackingQuizModal
+          isOpen={bossQuiz.isOpen}
+          isBossMode={true}
+          wave={bossQuiz.wave}
+          onClose={() => resolveBossQuiz(false)}
+          onBossSuccess={() => resolveBossQuiz(true)}
+          onBossFail={() => resolveBossQuiz(false)}
+        />
+      )}
 
       {/* Control del Monitor de FPS en tiempo real */}
       <FPSCounter />

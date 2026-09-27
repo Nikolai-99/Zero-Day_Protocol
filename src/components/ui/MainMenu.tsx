@@ -73,14 +73,18 @@ export const MainMenu: React.FC<MainMenuProps> = ({
         </div>
 
         {/* Terminal de Inyección / Hacking Quiz */}
-        <div className="pt-4 border-t border-neutral-800 flex justify-center">
+        <div className="pt-4 border-t border-neutral-800 flex flex-col items-center">
           <button 
             onClick={onOpenQuiz}
+            aria-label="Terminal de Hackeo // Quiz"
             className="w-full max-w-xs py-2.5 px-4 border border-green-500/60 bg-green-950/20 text-green-400 font-bold font-mono hover:bg-green-500 hover:text-black hover:border-green-400 transition-all uppercase tracking-widest text-[10px] shadow-[0_0_15px_rgba(34,197,94,0.15)] flex items-center justify-center gap-2"
           >
             <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
             <span>Terminal de Hackeo // Quiz</span>
           </button>
+          <span className="text-[9px] text-green-500/80 mt-1.5 font-mono tracking-wider text-center">
+            [MODO TEST // EVALUACIÓN RN-03] Entorno de prueba de inyección y exploits
+          </span>
         </div>
       </div>
 

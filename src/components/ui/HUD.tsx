@@ -63,7 +63,7 @@ export const HUD: React.FC<HUDProps> = ({
         )}
         
         <div className="text-yellow-400 font-bold tracking-widest text-lg mt-1">
-          {(gameMode === 'HACKING' || gameMode === 'IMPOSSIBLE') ? `WAVE ${wave}` : `WAVE ${wave} / ${maxWaves}`}
+          {gameMode === 'IMPOSSIBLE' ? `WAVE ${wave}` : `WAVE ${wave} / ${maxWaves}`}
         </div>
       </div>
       

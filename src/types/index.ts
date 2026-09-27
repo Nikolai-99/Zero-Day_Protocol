@@ -95,6 +95,15 @@ export interface GameStore {
   loadDevMode: () => Promise<void>;
   toggleDevMode: () => Promise<void>;
   
+  bossQuiz: {
+    isOpen: boolean;
+    wave: number;
+    status: 'IDLE' | 'PENDING' | 'SUCCESS' | 'FAILED';
+  };
+  openBossQuiz: (wave: number) => void;
+  resolveBossQuiz: (success: boolean) => void;
+  closeBossQuiz: () => void;
+
   reset: () => void;
   restartGame: () => void;
 }

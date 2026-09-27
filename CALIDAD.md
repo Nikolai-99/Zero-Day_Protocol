@@ -110,9 +110,9 @@ En cumplimiento de los requerimientos de la **Evaluación Parcial 2 (EP2)**, la 
 
 | Nivel de Prueba | Módulo / Componente Evaluado | Tecnología / Arnés | Propósito de Calidad | Defecto Exclusivo que Detecta |
 | :--- | :--- | :--- | :--- | :--- |
-| **Nivel 1: Unitarias** | `backend/services/game_rules.py` | `pytest` (86 tests) | Corrección matemática pura, valores límite (BVA) y tablas de decisión. | **Defecto 1:** Alteración de operadores de comparación o fórmulas de dominio. |
+| **Nivel 1: Unitarias** | `backend/services/game_rules.py` | `pytest` (88 tests) | Corrección matemática pura, valores límite (BVA) y tablas de decisión. | **Defecto 1:** Alteración de operadores de comparación o fórmulas de dominio. |
 | **Nivel 2: Integración** | `backend/routers/` + SQLite en memoria | `pytest` + `TestClient` (22 tests) | Integridad de contratos JSON (Pydantic), códigos HTTP (200, 400, 422) y persistencia relacional. | **Defecto 2:** Renombrado de campos de entrada/salida o códigos HTTP alterados. |
-| **Nivel 3: Extremo a Extremo** | Servidor Vite (:3000) + DOM React | `Playwright` Chromium (5 tests) | Recorrido real del usuario (User Journey), interacción con inputs y reactividad visual del HUD. | **Defecto 3:** Botón no interactivo, paso de navegación saltado o HUD no montado. |
+| **Nivel 3: Extremo a Extremo** | Servidor Vite (:3000) + DOM React | `Playwright` Chromium (6 tests) | Recorrido real del usuario (User Journey), interacción con inputs, reactividad visual del HUD y Terminal de Hackeo. | **Defecto 3:** Botón no interactivo, paso de navegación saltado o HUD/Quiz no montado. |
 
 ---
 
@@ -121,17 +121,22 @@ En cumplimiento de los requerimientos de la **Evaluación Parcial 2 (EP2)**, la 
 Para cumplir con las directrices de privacidad y protección de datos exigidas por la rúbrica de la EP2:
 1. **Datos 100% Sintéticos:** En todos los ambientes de prueba se emplean identificadores generados mediante algoritmos deterministas o UUIDs efímeros (ej. `OP-TEST-5cedd6`, `Ghost_5cedd6`, `CYBER_OPERATOR`). Queda terminantemente prohibido el uso de nombres, correos o datos personales de personas reales.
 2. **Principio de Minimización:** Las entidades de prueba se limitan a los atributos estrictamente indispensables para validar la regla de negocio (`id`, `username`, `score`, `wave`, `game_mode`). Se prescinde de recolectar metadatos innecesarios de red, hardware o sesiones personales.
-3. **Aislamiento y Eliminación Verificable:** Las pruebas de integración ejecutan una sesión con base de datos SQLite en memoria volátil (`sqlite:///:memory:`) con transacciones de rollback automático por prueba, garantizando que el archivo físico `zero_day_protocol.db` permanezca inmaculado y libre de registros de prueba.
+3. **Aislamiento y Eliminación Verificable en Integración y E2E:** 
+   - Las pruebas de integración ejecutan una sesión con base de datos SQLite en memoria volátil (`sqlite:///:memory:`) con transacciones de rollback automático por prueba.
+   - Las pruebas E2E ejecutan el backend apuntando a una base de datos temporal dedicada (`zero_day_e2e_isolated.db`), la cual se elimina automáticamente al finalizar la sesión, garantizando que el archivo físico de producción `zero_day_protocol.db` permanezca 100% inmaculado e inalterado.
 
 ---
 
 ### 6.3 Hallazgo 4: Aislamiento Transaccional y Erradicación de Contaminación de Datos
 * **Identificador:** `AUD-VER-004` (EP2)
 * **Tipo:** **Verificación** (Aislamiento del entorno de pruebas frente a los datos persistidos).
-* **Descripción del Problema:** Las pruebas iniciales de persistencia ejecutaban peticiones directas sobre la base de datos física del juego (`zero_day_protocol.db`). Esto provocaba contaminación de datos (*data pollution*), dejando registros efímeros (`Ghost_...`, `TestHero_...`) en la tabla de clasificación real, alterando las métricas de jugadores legítimos.
+* **Descripción del Problema:** Las pruebas iniciales de persistencia y E2E ejecutaban peticiones directas sobre la base de datos física del juego (`zero_day_protocol.db`). Esto provocaba contaminación de datos (*data pollution*), dejando registros efímeros (`CYBER_OPERATOR`, `Hero_...`) en la tabla de clasificación real, alterando las métricas de jugadores legítimos.
 * **Impacto en Calidad (ISO 25010):** Afecta la **Fiabilidad (Tolerancia a fallos)** y la **Seguridad (Integridad de datos)**, imposibilitando la reproducibilidad limpia de la suite en entornos de evaluación.
-* **Acción Correctiva Implementada:** En `tests/integration/conftest.py` se implementó la inyección de dependencias `dependency_overrides[get_db]` asociada a un motor `create_engine("sqlite:///:memory:", poolclass=StaticPool)` con esquema efímero y rollback automático al concluir cada prueba.
-* **Evidencia de Resolución:** Ejecución de las 22 pruebas de integración con 0 modificaciones sobre el archivo físico `zero_day_protocol.db`, el cual conserva su integridad y tamaño exacto antes y después de los tests.
+* **Acción Correctiva Implementada:**
+  1. En `tests/integration/conftest.py` se inyectó `dependency_overrides[get_db]` asociada a un motor `create_engine("sqlite:///:memory:", poolclass=StaticPool)` con esquema efímero.
+  2. En `tests/e2e/conftest.py` se parametrizó la variable de entorno `DATABASE_URL=sqlite:///./zero_day_e2e_isolated.db`, con purga automática antes y después de la suite de Playwright.
+  3. Se sanearon los registros residuales del archivo físico `zero_day_protocol.db`, dejándolo con sus 5 usuarios iniciales inmaculados.
+* **Evidencia de Resolución:** Ejecución de los 3 niveles de la suite con 0 modificaciones sobre el archivo físico `zero_day_protocol.db`, el cual conserva su integridad y conteo exacto de 5 registros antes y después de los tests.
 
 ---
 
@@ -139,10 +144,10 @@ Para cumplir con las directrices de privacidad y protección de datos exigidas p
 
 | Métrica de la Suite | Valor Obtenido | Umbral de Conformidad |
 | :--- | :---: | :---: |
-| **Pruebas Nivel 1 (Unitarias)** | 86 aprobadas | $\ge 80$ pruebas nominales y de frontera |
+| **Pruebas Nivel 1 (Unitarias)** | 88 aprobadas | $\ge 80$ pruebas nominales y de frontera |
 | **Pruebas Nivel 2 (Integración API/DB)** | 22 aprobadas | $\ge 15$ pruebas de contrato y persistencia |
-| **Pruebas Nivel 3 (Playwright E2E)** | 5 aprobadas | $\ge 1$ flujo completo de usuario en navegador |
-| **Total de Pruebas Automatizadas** | **113 en verde (0 fallos)** | 100% de tasa de éxito en suite unificada |
-| **Tiempo Total de Ejecución de la Pirámide** | **~14.5 segundos** | Tiempo óptimo para integración continua (CI) |
+| **Pruebas Nivel 3 (Playwright E2E)** | 6 aprobadas | $\ge 1$ flujo completo de usuario en navegador |
+| **Total de Pruebas Automatizadas** | **116 en verde (0 fallos)** | 100% de tasa de éxito en suite unificada |
+| **Tiempo Total de Ejecución de la Pirámide** | **~25 segundos** | Tiempo óptimo para integración continua (CI) |
 | **Diagnósticos de Linter (`ruff`)** | **0 diagnósticos** | 100% de conformidad estática PEP 8 |
 | **Diagnósticos de Tipos (`pyrefly`)** | **0 errores** | Tipado estricto en backend y pruebas |

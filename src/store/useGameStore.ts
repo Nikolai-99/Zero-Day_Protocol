@@ -3,7 +3,7 @@ import { GameStore } from '../types';
 import { gameApi } from '../api/gameApi';
 import { v4 as uuidv4 } from 'uuid';
 
-// Generar sesión aleatoria de operador al entrar al juego (según Regla de Identidad)
+// Generar sesión aleatoria de operador al entrar al juego
 const generateRandomOperator = () => {
   const randomSuffix = uuidv4().substring(0, 8);
   const id = `player_${randomSuffix}`;
@@ -99,7 +99,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const { username: currentName, isNamed } = get();
     let candidateId = id;
     // Si el usuario ya tenía nombre registrado y está cambiando a otro nombre diferente,
-    // se genera un nuevo ID para el nuevo nombre a fin de que cambie según la regla
+    // se genera un nuevo ID para el nuevo nombre para mantener sesiones independientes
     if (isNamed && currentName !== name) {
       candidateId = generateRandomOperator().id;
     }
@@ -133,7 +133,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   saveSession: async () => {
     const { userId, score, savedScore, wave, isNamed, gameMode } = get();
     const delta = score - savedScore;
-    // Regla de Negocio: No guardar puntuación si el usuario no ha ingresado su nombre
+    // Persistencia: No guardar puntuación si el usuario no ha ingresado su nombre
     // y solo sincronizar si hay puntos nuevos acumulados en la partida (delta > 0)
     if (isNamed && delta > 0) {
       set({ savedScore: score });

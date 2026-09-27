@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 
 interface IconProps {
   className?: string;
@@ -6,7 +6,7 @@ interface IconProps {
 }
 
 // ==========================================
-// VECTORES PARA RANGOS DE OPERADOR (REGLA 4)
+// VECTORES PARA RANGOS DE OPERADOR
 // ==========================================
 
 // Rango 1: SCRIPT_ROOKIE (Cadete - Terminal y Chevron Inicial)
@@ -100,7 +100,7 @@ export const EliteOperatorIcon: React.FC<IconProps> = ({ className = "w-6 h-6", 
 );
 
 // ==========================================
-// VECTORES PARA MODOS DE JUEGO (REGLA 2)
+// VECTORES PARA MODOS DE JUEGO
 // ==========================================
 
 // Modo NORMAL (Tactical Core / Balance CPU)

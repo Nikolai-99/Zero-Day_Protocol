@@ -82,8 +82,8 @@ export const MainMenu: React.FC<MainMenuProps> = ({
             <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
             <span>Terminal de Hackeo // Quiz</span>
           </button>
-          <span className="text-[9px] text-green-500/80 mt-1.5 font-mono tracking-wider text-center">
-            [MODO TEST // EVALUACIÓN RN-03] Entorno de prueba de inyección y exploits
+          <span className="text-[9px] text-neutral-500 mt-1.5 font-mono tracking-wider text-center">
+            Simulador de Inyección &amp; Práctica de Exploits
           </span>
         </div>
       </div>

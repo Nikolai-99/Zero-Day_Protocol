@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { ScoreData, UserStatsData } from '../../types';
 import { gameApi } from '../../api/gameApi';
@@ -184,7 +184,7 @@ export const OperatorRankModal: React.FC<OperatorRankModalProps> = ({ player, on
             /* Vista B: Condiciones de Rango (4 columnas horizontales) */
             <div className="animate-fadeIn">
               <div className="flex justify-between items-center text-xs font-mono text-neutral-400 uppercase tracking-wider mb-2.5">
-                <span className="text-yellow-400 font-mono font-bold">JERARQUÍA DE RANGOS DE COMBATE (REGLA 4)</span>
+                <span className="text-yellow-400 font-mono font-bold">JERARQUÍA DE RANGOS DE COMBATE</span>
                 <span className="text-neutral-500 text-[10px]">CRITERIOS DE ASCENSO</span>
               </div>
 

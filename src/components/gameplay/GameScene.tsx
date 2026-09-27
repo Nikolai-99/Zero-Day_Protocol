@@ -256,7 +256,7 @@ export const GameScene: React.FC<GameSceneProps> = ({ onRestart }) => {
     } else if (bossQuiz.status === 'FAILED') {
       const { wave: currentWave } = useGameStore.getState();
       closeBossQuiz();
-      // Reinicia la ronda actual según la regla del Hacking Mode
+      // Reinicia la ronda actual en Hacking Mode tras fallo de exploit
       spawnWave(currentWave);
       setTimeout(() => {
         document.body.requestPointerLock?.();

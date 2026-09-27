@@ -345,7 +345,7 @@ export const GameUI: React.FC<GameUIProps> = ({ onRestart }) => {
         </div>
       )}
 
-      {/* Terminal de Inyección / Hacking Quiz (Modo Test desde el Menú Principal) */}
+      {/* Terminal de Inyección / Hacking Quiz (Simulador de Práctica desde el Menú Principal) */}
       <HackingQuizModal 
         isOpen={isQuizOpen} 
         isBossMode={false}

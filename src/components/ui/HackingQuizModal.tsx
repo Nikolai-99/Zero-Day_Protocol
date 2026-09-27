@@ -123,12 +123,12 @@ export const HackingQuizModal: React.FC<HackingQuizModalProps> = ({
             <span className="inline-block w-3 h-3 bg-green-500 rounded-full animate-ping" />
             <div className="flex flex-col">
               <span className="text-xs uppercase tracking-widest font-bold text-green-400">
-                TERMINAL DE INYECCIÓN DE CÓDIGO // HACKING QUIZ (RN-03)
+                TERMINAL DE INYECCIÓN DE CÓDIGO // HACKING QUIZ
               </span>
               <span className="text-[10px] text-green-600 font-mono tracking-wider">
                 {isBossMode 
                   ? `[MODO COMBATE // JEFE CIRCULAR OLEADA ${wave}]` 
-                  : '[MODO TEST // EVALUACIÓN RN-03]'}
+                  : '[SIMULADOR DE EXPLOITS // TERMINAL DE ENTRENAMIENTO]'}
               </span>
             </div>
           </div>

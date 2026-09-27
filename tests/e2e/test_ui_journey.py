@@ -92,3 +92,37 @@ class TestUserJourneyE2E:
         )
         hint_text = page.locator("text=CLIC EN NOMBRE PARA RANGO")
         assert hint_text.is_visible(), "La indicación de interacción de rango debe mostrarse"
+
+    def test_e2e_hacking_quiz_modal_interaction_and_rewards(self, page: Page):
+        """Verifica la apertura del minijuego de Quiz en el menú, respuesta correcta y cierre."""
+        quiz_btn = page.get_by_role("button", name="Terminal de Hackeo // Quiz")
+        assert quiz_btn.is_visible(), "El botón de Terminal de Hackeo debe estar visible en el menú"
+        quiz_btn.click()
+
+        # Verificar que el modal de Hacking Quiz se montó en el DOM
+        page.wait_for_selector("text=TERMINAL DE INYECCIÓN DE CÓDIGO // HACKING QUIZ", timeout=8000)
+        assert page.locator("text=TERMINAL DE INYECCIÓN DE CÓDIGO // HACKING QUIZ").is_visible()
+        assert page.locator("text=ESCUDOS ACTUALES:").is_visible()
+
+        # Esperar a que las preguntas se carguen desde la API y se rendericen las opciones
+        option_btn = page.locator("button:has-text('[2]')")
+        option_btn.wait_for(state="visible", timeout=8000)
+        assert option_btn.is_visible(), "Las opciones de inyección deben estar disponibles"
+        option_btn.click()
+
+        # Verificar feedback exitoso
+        page.wait_for_selector("text=INYECCIÓN EXITOSA", timeout=5000)
+        assert page.locator("text=INYECCIÓN EXITOSA").is_visible()
+
+        # Cerrar el terminal
+        close_btn = page.get_by_role("button", name="[CERRAR TERMINAL]")
+        assert close_btn.is_visible()
+        close_btn.click()
+
+        # Verificar que el modal se desmontó y el menú sigue accesible
+        page.wait_for_selector(
+            "text=TERMINAL DE INYECCIÓN DE CÓDIGO // HACKING QUIZ",
+            state="hidden",
+            timeout=5000,
+        )
+        assert quiz_btn.is_visible()

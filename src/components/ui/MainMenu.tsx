@@ -9,6 +9,7 @@ interface MainMenuProps {
   userId: string;
   onRename: (newName: string) => void;
   leaderboard: ScoreData[];
+  onOpenQuiz?: () => void;
 }
 
 export const MainMenu: React.FC<MainMenuProps> = ({
@@ -17,6 +18,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({
   userId,
   onRename,
   leaderboard,
+  onOpenQuiz,
 }) => {
   return (
     <div className="flex flex-col md:flex-row gap-6 max-w-4xl w-full pointer-events-auto p-4 animate-fadeIn">
@@ -68,6 +70,17 @@ export const MainMenu: React.FC<MainMenuProps> = ({
               Predictive Aim<br/>Graze is Hit // Scarcity
             </span>
           </div>
+        </div>
+
+        {/* Terminal de Inyección / Hacking Quiz */}
+        <div className="pt-4 border-t border-neutral-800 flex justify-center">
+          <button 
+            onClick={onOpenQuiz}
+            className="w-full max-w-xs py-2.5 px-4 border border-green-500/60 bg-green-950/20 text-green-400 font-bold font-mono hover:bg-green-500 hover:text-black hover:border-green-400 transition-all uppercase tracking-widest text-[10px] shadow-[0_0_15px_rgba(34,197,94,0.15)] flex items-center justify-center gap-2"
+          >
+            <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+            <span>Terminal de Hackeo // Quiz</span>
+          </button>
         </div>
       </div>
 

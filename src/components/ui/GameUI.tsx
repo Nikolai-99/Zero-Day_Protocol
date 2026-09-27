@@ -6,6 +6,7 @@ import { MainMenu } from './MainMenu';
 import { GameStatusScreen } from './GameStatusScreen';
 import { FPSCounter } from './FPSCounter';
 import { audioSystem } from '../../utils/audioSystem';
+import { HackingQuizModal } from './HackingQuizModal';
 
 interface GameUIProps {
   onRestart: () => void;
@@ -22,6 +23,7 @@ export const GameUI: React.FC<GameUIProps> = ({ onRestart }) => {
   const [volume, setVolume] = useState(0.6); // Valor inicial al 60%
   const [prevVolume, setPrevVolume] = useState(0.6);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isQuizOpen, setIsQuizOpen] = useState(false);
 
   // Sincronizar el volumen al montar (siempre al 60% al iniciar el juego)
   useEffect(() => {
@@ -186,6 +188,7 @@ export const GameUI: React.FC<GameUIProps> = ({ onRestart }) => {
             userId={userId}
             onRename={handleRename}
             leaderboard={leaderboard}
+            onOpenQuiz={() => setIsQuizOpen(true)}
           />
         )}
 
@@ -208,6 +211,12 @@ export const GameUI: React.FC<GameUIProps> = ({ onRestart }) => {
                 className="border border-green-500/50 bg-green-950/20 text-green-400 hover:bg-green-500 hover:text-black transition-colors px-6 py-2 text-xs tracking-widest uppercase font-bold"
               >
                 Resume Simulation
+              </button>
+              <button 
+                onClick={() => setIsQuizOpen(true)}
+                className="border border-yellow-500/50 bg-yellow-950/20 text-yellow-400 hover:bg-yellow-500 hover:text-black transition-colors px-6 py-2 text-xs tracking-widest uppercase font-bold"
+              >
+                Inyección // Hacking Quiz
               </button>
               <button 
                 onClick={handleReturnToMenu}
@@ -341,6 +350,12 @@ export const GameUI: React.FC<GameUIProps> = ({ onRestart }) => {
           </div>
         </div>
       )}
+
+      {/* Terminal de Inyección / Hacking Quiz */}
+      <HackingQuizModal 
+        isOpen={isQuizOpen} 
+        onClose={() => setIsQuizOpen(false)} 
+      />
 
       {/* Control del Monitor de FPS en tiempo real */}
       <FPSCounter />

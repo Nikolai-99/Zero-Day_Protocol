@@ -261,7 +261,7 @@ En cumplimiento riguroso de los lineamientos de transparencia de las Evaluacione
   - Desacoplamiento de las 5 reglas de negocio hacia módulos de dominio puro en Python (`game_rules.py`).
   - Migración a modelos SQLAlchemy 2.0 (`Mapped[T]`) y resolución de inconsistencias de tipado estático con `pyrefly`.
   - Configuración y conformidad de linter con `ruff` (reglas E, F, W, I) con cero diagnósticos silenciados.
-  - Implementación de la batería de 100 pruebas en `pytest` (cobertura nominal, frontera, excepciones y regresión de defectos).
+  - Implementación de la batería de 116 pruebas en `pytest` (cobertura nominal, frontera, excepciones y regresión de defectos).
   - Estructuración de la documentación de calidad ISO/IEC 25010 en `CALIDAD.md` y diseño formal de casos en `DISENO-DE-CASOS.md`.
 
 ### 2. Qué Revisó y Corrigió el Desarrollador (Errores y Límites Detectados)
@@ -271,7 +271,7 @@ Durante el ciclo de desarrollo interactivo, el criterio humano detectó y corrig
 3. **Colisión de Identidad al Renombrar:** El agente propuso reutilizar el `candidate_id` sin validar si ya existía en la base de datos, mutando el nombre del usuario previo. El desarrollador corrigió la regla para que al ingresar un nombre nuevo se asigne un nuevo ID independiente, preservando la identidad anterior y permitiendo restaurar el ID histórico solo si el nombre coincide exactamente.
 
 ### 3. Caso Completo de Revisión Adversarial (Productor — Auditor — Árbitro)
-- **Propuesta del Agente Productor:** El agente implementó inicialmente las pruebas de integración en `tests/test_api_rules.py` ejecutándose directamente contra el archivo de base de datos local `zero_day_protocol.db`.
+- **Propuesta del Agente Productor:** El agente implementó inicialmente las pruebas de integración en `tests/test_api_rules.py` (actualmente modularizadas en `tests/integration/test_api_rules.py`) ejecutándose directamente contra el archivo de base de datos local `zero_day_protocol.db`.
 - **Objeción del Agente Auditor:** El auditor señaló que correr la suite de pruebas contra la base de datos real provocaba contaminación de datos (*data pollution*), dejando usuarios efímeros de prueba (`Hero_...`, `Op_...`) en la tabla de clasificación del juego real, comprometiendo la reproducibilidad de la evaluación y la persistencia del usuario.
 - **Decisión y Arbitraje del Desarrollador:** El desarrollador dictaminó desacoplar completamente la suite de pruebas del archivo físico, configurando una base de datos SQLite en memoria (`sqlite:///:memory:` con `StaticPool`) mediante `dependency_overrides[get_db]` en `tests/integration/conftest.py`. Esto aisló al 100% las pruebas automatizadas, aceleró la suite a 0.5 segundos y conservó la base de datos de producción limpia y con integridad referencial.
 

@@ -8,8 +8,10 @@ Proporciona:
 - Aislamiento de contextos de navegación con viewport estándar 1024x768.
 """
 
+import os
 import socket
 import subprocess
+import sys
 import time
 from typing import Any, Generator
 
@@ -24,34 +26,64 @@ def is_port_in_use(port: int, host: str = "127.0.0.1") -> bool:
         return s.connect_ex((host, port)) == 0
 
 
+def terminate_process(proc: subprocess.Popen) -> None:
+    """Finaliza un subproceso y sus hijos de forma segura y dirigida por PID."""
+    if proc.poll() is not None:
+        return
+    try:
+        if sys.platform == "win32":
+            subprocess.run(
+                ["taskkill", "/F", "/T", "/PID", str(proc.pid)],
+                capture_output=True,
+                check=False,
+            )
+        else:
+            proc.terminate()
+            proc.wait(timeout=2)
+    except Exception:
+        try:
+            proc.kill()
+        except Exception:
+            pass
+
+
 @pytest.fixture(scope="session")
 def servers():
-    """Inicia FastAPI y Vite en modo desarrollo dinámico (compilando src/)."""
+    """Inicia FastAPI y Vite en modo desarrollo dinámico con base de datos de prueba aislada."""
     started_processes = []
+    test_db_file = os.path.abspath("zero_day_e2e_isolated.db")
 
-    # 1. Limpiar procesos residuales si los puertos quedaron ocupados por ejecuciones previas
-    if is_port_in_use(3000) or is_port_in_use(8000):
-        subprocess.run("taskkill /F /IM node.exe /T", shell=True, capture_output=True)
-        subprocess.run("taskkill /F /IM uvicorn.exe /T", shell=True, capture_output=True)
-        time.sleep(1)
+    # Limpiar base de datos temporal si existiera de una ejecución previa abortada
+    for ext in ["", "-journal", "-wal", "-shm"]:
+        fpath = f"{test_db_file}{ext}"
+        if os.path.exists(fpath):
+            try:
+                os.remove(fpath)
+            except Exception:
+                pass
 
-    # 2. Iniciar Backend en puerto 8000
+    # Configurar entorno de backend apuntando a la base aislada
+    backend_env = os.environ.copy()
+    backend_env["DATABASE_URL"] = f"sqlite:///{test_db_file}"
+
+    # 1. Iniciar Backend en puerto 8000 con base aislada
     backend_proc = subprocess.Popen(
         "uv run uvicorn backend.main:app --host 127.0.0.1 --port 8000",
         shell=True,
+        env=backend_env,
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
     )
-    started_processes.append(("backend", backend_proc))
+    started_processes.append(backend_proc)
 
-    # 3. Iniciar Frontend Vite en MODO DESARROLLO (para reflejar cambios en src/ en tiempo real)
+    # 2. Iniciar Frontend Vite en modo desarrollo
     frontend_proc = subprocess.Popen(
         "npx vite --port 3000 --host 127.0.0.1",
         shell=True,
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
     )
-    started_processes.append(("frontend", frontend_proc))
+    started_processes.append(frontend_proc)
 
     # Esperar hasta 20 segundos a que ambos puertos estén respondiendo activamente
     start_time = time.time()
@@ -61,6 +93,8 @@ def servers():
         time.sleep(0.5)
 
     if not (is_port_in_use(8000) and is_port_in_use(3000)):
+        for proc in started_processes:
+            terminate_process(proc)
         raise RuntimeError("Los servidores de prueba (8000/3000) no lograron iniciar a tiempo.")
 
     # Breve estabilización del socket HTTP de Vite
@@ -68,15 +102,19 @@ def servers():
 
     yield {"backend": "http://127.0.0.1:8000", "frontend": "http://127.0.0.1:3000"}
 
-    # Limpieza limpia al finalizar la sesión de pruebas
-    for _, proc in started_processes:
-        try:
-            proc.terminate()
-        except Exception:
-            pass
+    # Limpieza dirigida y limpia al finalizar la sesión de pruebas (por PID específico)
+    for proc in started_processes:
+        terminate_process(proc)
 
-    subprocess.run("taskkill /F /IM uvicorn.exe /T", shell=True, capture_output=True)
-    subprocess.run("taskkill /F /IM node.exe /T", shell=True, capture_output=True)
+    # Eliminar base de datos temporal aislada de E2E
+    time.sleep(0.5)
+    for ext in ["", "-journal", "-wal", "-shm"]:
+        fpath = f"{test_db_file}{ext}"
+        if os.path.exists(fpath):
+            try:
+                os.remove(fpath)
+            except Exception:
+                pass
 
 
 @pytest.fixture(scope="session")

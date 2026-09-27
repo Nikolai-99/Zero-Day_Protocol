@@ -162,9 +162,9 @@ Zero-Day_Protocol/
 │   ├── services/                 # Reglas de negocio puras (game_rules.py)
 │   └── main.py                   # Entrypoint FastAPI con ciclo de vida lifespan
 ├── tests/                        # Pirámide de pruebas automatizada de 3 niveles (pytest)
-│   ├── unit/                     # Nivel 1: Pruebas unitarias de dominio puro (86 pruebas)
+│   ├── unit/                     # Nivel 1: Pruebas unitarias de dominio puro (88 pruebas)
 │   ├── integration/              # Nivel 2: Integración API y SQLite en memoria (22 pruebas)
-│   └── e2e/                      # Nivel 3: Pruebas de interfaz E2E con Playwright (5 pruebas)
+│   └── e2e/                      # Nivel 3: Pruebas de interfaz E2E con Playwright (6 pruebas)
 ├── src/                          # Cliente WebGL / R3F en React 19 y TypeScript
 │   ├── api/                      # Clientes de comunicación HTTP con la API REST local
 │   ├── components/               # Componentes modulares SOLID de UI y Gameplay 3D
@@ -174,7 +174,6 @@ Zero-Day_Protocol/
 ├── CALIDAD.md                    # Matriz de trazabilidad ISO/IEC 25010 y auditoría de calidad
 ├── DISENO-DE-CASOS.md            # Diseño formal de casos (EP, BVA, tablas de decisión, descartados)
 ├── PLAN-DE-PRUEBAS.md            # Plan maestro de pruebas según norma ISO/IEC/IEEE 29119
-├── Suite_de_Pruebas_Ev2.md       # Documento de arquitectura para Obsidian con diagramas Mermaid
 ├── pyproject.toml                # Configuración de uv, ruff, pyrefly y pytest
 ├── .python-version               # Versión de Python fijada (CPython 3.12)
 ├── uv.lock                       # Lockfile reproducible de dependencias de Python
@@ -188,12 +187,12 @@ Zero-Day_Protocol/
 
 ## 📋 Pirámide de Pruebas y Cobertura de Calidad (Evaluación Práctica 2 AIEP - TALLER DE TESTING)
 
-El proyecto evoluciona incrementalmente desde la Evaluación Práctica 1 hacia una **arquitectura de aseguramiento de calidad de tres niveles** bajo el estándar **ISO/IEC/IEEE 29119**, sumando **113 pruebas automatizadas**. El dominio troncal implementado en Python puro e inmutable (`@dataclass(frozen=True)` en [`backend/services/game_rules.py`](backend/services/game_rules.py)) se complementa con la verificación formal de contratos HTTP de la API REST ([`backend/routers/rules.py`](backend/routers/rules.py)), pruebas de interfaz extremo a extremo con Playwright, y documentación formal de diseño de casos en [`DISENO-DE-CASOS.md`](DISENO-DE-CASOS.md) y [`PLAN-DE-PRUEBAS.md`](PLAN-DE-PRUEBAS.md):
+El proyecto evoluciona incrementalmente desde la Evaluación Práctica 1 hacia una **arquitectura de aseguramiento de calidad de tres niveles** bajo el estándar **ISO/IEC/IEEE 29119**, sumando **116 pruebas automatizadas**. El dominio troncal implementado en Python puro e inmutable (`@dataclass(frozen=True)` en [`backend/services/game_rules.py`](backend/services/game_rules.py)) se complementa con la verificación formal de contratos HTTP de la API REST ([`backend/routers/rules.py`](backend/routers/rules.py)), pruebas de interfaz extremo a extremo con Playwright, y documentación formal de diseño de casos en [`DISENO-DE-CASOS.md`](DISENO-DE-CASOS.md) y [`PLAN-DE-PRUEBAS.md`](PLAN-DE-PRUEBAS.md):
 
-### 1. Pirámide de Pruebas Automatizada en 3 Niveles (113 Pruebas)
-- **Nivel 1 — Pruebas Unitarias (`tests/unit/`):** 86 pruebas sobre las reglas de dominio puro (`CombatRules`, `ScoreRules`, `HackingRules`, `RankingRules`, `UserIdentityRules`). Cubren particiones nominales, análisis de valores límite (BVA) y la regresión del defecto histórico de vida negativa. Ejecución ultra-rápida en ~0.15s.
+### 1. Pirámide de Pruebas Automatizada en 3 Niveles (116 Pruebas)
+- **Nivel 1 — Pruebas Unitarias (`tests/unit/`):** 88 pruebas sobre las reglas de dominio puro (`CombatRules`, `ScoreRules`, `HackingRules`, `RankingRules`, `UserIdentityRules`). Cubren particiones nominales, análisis de valores límite (BVA) y la regresión del defecto histórico de vida negativa. Ejecución ultra-rápida en ~0.15s.
 - **Nivel 2 — Pruebas de Integración (`tests/integration/`):** 22 pruebas que validan los contratos HTTP de FastAPI mediante `TestClient` y una base de datos SQLite aislada en memoria (`sqlite:///:memory:` con `StaticPool`). Valida códigos de estado (200, 400, 422), esquemas Pydantic y persistencia relacional con agregación de puntajes históricos y rangos sin contaminación de datos. Ejecución en ~0.50s.
-- **Nivel 3 — Pruebas Extremo a Extremo con Playwright (`tests/e2e/`):** 5 pruebas sobre el frontend real servido por Vite. Valida el recorrido de usuario (*User Journey*): carga de interfaz, renombrado de operador (*Callsign*), inicio de misión en dificultad Normal (HUD con HP 100%), adaptación del HUD a escudos Matrix en Hacking Mode, alerta de muerte a 1 golpe en Impossible Mode y visibilidad del panel de clasificación (*Leaderboard*). Ejecución en ~13s.
+- **Nivel 3 — Pruebas Extremo a Extremo con Playwright (`tests/e2e/`):** 6 pruebas sobre el frontend real servido por Vite. Valida el recorrido de usuario (*User Journey*): carga de interfaz, renombrado de operador (*Callsign*), inicio de misión en dificultad Normal (HUD con HP 100%), adaptación del HUD a escudos Matrix en Hacking Mode, alerta de muerte a 1 golpe en Impossible Mode, visibilidad del panel de clasificación (*Leaderboard*) e interacción con la terminal interactiva de Hacking Quiz. Ejecución en ~14s.
 
 ### 2. Diseño Formal de Casos de Prueba (`DISENO-DE-CASOS.md`)
 - **Particiones de Equivalencia (EP):** Clasificación sistemática de entradas en rangos válidos e inválidos para salud ($[1,99], \{100\}, \{0\}, <0$), modos canónicos (`NORMAL`, `HACKING`, `IMPOSSIBLE`), daño y formato de nombre de operador.
@@ -209,7 +208,6 @@ El proyecto evoluciona incrementalmente desde la Evaluación Práctica 1 hacia u
 ### 4. Plan Maestro de Pruebas y Trazabilidad (ISO/IEC/IEEE 29119)
 - **Marco Normativo (`PLAN-DE-PRUEBAS.md`):** Definición formal de alcance de pruebas, estrategia de mitigación de riesgos de calidad (funcionalidad, contratos, UI), criterios de entrada y salida, y entornos de prueba.
 - **Matriz de Trazabilidad Bidireccional:** Vinculación directa entre identificadores de caso de prueba (`TC-COMBAT-001`, `TC-RANK-001`, `TC-API-001`, `TC-E2E-001`, etc.), reglas de negocio evaluadas, técnica de diseño formal aplicada y archivos de prueba automatizados.
-- **Visualización en Obsidian (`Suite_de_Pruebas_Ev2.md`):** Documento central compatible con Obsidian que integra diagramas Mermaid para visualización de arquitectura de testing, flujo E2E y jerarquía de rangos.
 
 ### 5. Consolidación de Reglas Troncales de Negocio (Dominio Base)
 - **Resolución de Combate y Mitigación de Daño (`CombatRules`):** Gestión de vida, absorción de 1 escudo Matrix en HACKING/IMPOSSIBLE, muerte súbita con 0 escudos, invulnerabilidad táctica y truncamiento en 0 (piso matemático).
@@ -243,14 +241,13 @@ uv run pyrefly check
 uv run ruff check .
 
 # 4. Batería de pruebas automatizadas (Pytest)
-# Ejecuta 113 pruebas automatizadas en los 3 niveles de la pirámide (Unit, Integration, E2E)
+# Ejecuta 116 pruebas automatizadas en los 3 niveles de la pirámide (Unit, Integration, E2E)
 uv run pytest
 ```
 
 > [!NOTE]
 > Para conocer la matriz de trazabilidad ISO/IEC 25010, la justificación de diagnósticos y el registro estructurado de hallazgos de auditoría, consulte el documento [`CALIDAD.md`](CALIDAD.md).
 > Para revisar el diseño formal de casos de prueba (Particiones de Equivalencia, BVA y Tablas de Decisión), consulte [`DISENO-DE-CASOS.md`](DISENO-DE-CASOS.md) y [`PLAN-DE-PRUEBAS.md`](PLAN-DE-PRUEBAS.md).
-> Para visualizar los diagramas de arquitectura en Obsidian, consulte [`Suite_de_Pruebas_Ev2.md`](Suite_de_Pruebas_Ev2.md).
 
 ---
 

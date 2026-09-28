@@ -183,7 +183,6 @@ Zero-Day_Protocol/
 ├── DISENO-DE-CASOS.md            # Diseño formal de casos (EP, BVA, tablas de decisión, no funcionales)
 ├── PLAN-DE-PRUEBAS.md            # Plan maestro de pruebas cerrado según norma ISO/IEC/IEEE 29119
 ├── NO-FUNCIONALES.md             # Informe formal de pruebas no funcionales con umbrales declarados
-├── Defensa_del_desarrollador.md  # Guía de defensa presencial con respuestas técnicas al evaluador
 ├── pyproject.toml                # Configuración de uv, ruff, pyrefly y pytest
 ├── .python-version               # Versión de Python fijada (CPython 3.12)
 ├── uv.lock                       # Lockfile reproducible de dependencias de Python

@@ -87,7 +87,7 @@ echo [SYSTEM CHECK] Dependencias de Python listas.
 :: 3. Verificar dependencias de Node.js
 if exist "node_modules" goto node_modules_exists
 echo [SYSTEM CHECK] No se encontro node_modules. Instalando dependencias de npm...
-call npm install
+call npm ci
 :node_modules_exists
 
 echo.

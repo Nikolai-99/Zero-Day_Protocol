@@ -47,8 +47,8 @@ cd Zero-Day_Protocol
 # 1. Instalar entorno virtual, dependencias de backend y herramientas de testing con uv
 uv sync
 
-# 2. Instalar dependencias de frontend y contenedor Electron
-npm install
+# 2. Instalar dependencias de frontend y contenedor Electron (reproducible y bloqueado)
+npm ci
 ```
 
 > [!TIP]
@@ -114,7 +114,7 @@ run_dev.bat
 *Este script automatizado se encarga de manera silenciosa de:*
 1. Limpiar cachés residuales de Electron y Vite.
 2. Recrear el `.venv` de forma **100% offline** desde `vendor/wheels/` si se detecta un cambio de máquina o ruta.
-3. Instalar módulos de Node.js (`npm install`) si no están presentes.
+3. Instalar módulos de Node.js (`npm ci`) si no están presentes de manera reproducible.
 4. Levantar FastAPI y Vite en segundo plano.
 5. Iniciar la ventana nativa de **Electron** inmediatamente.
 6. Finalizar limpiamente los procesos de los puertos 8000 y 3000 al cerrar el juego.
@@ -303,7 +303,7 @@ Para ejecutar todos los servicios en sintonía y de forma 100% automatizada:
 3. El lanzador se encargará de forma silenciosa de:
    * Limpiar cachés residuales de Electron/Vite para evitar fricciones.
    * Detectar si el proyecto cambió de ruta o máquina y recrear el `.venv` de forma **100% offline** desde `vendor/wheels/`.
-   * Verificar dependencias de Node.js (`npm install`).
+   * Verificar dependencias de Node.js (`npm ci`).
    * Levantar el servidor FastAPI (`uvicorn`) en segundo plano en `127.0.0.1:8000`.
    * Levantar el servidor Vite (`npm run dev`) en segundo plano en `127.0.0.1:3000`.
    * Arrancar el wrapper nativo de **Electron** de inmediato.

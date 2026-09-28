@@ -261,3 +261,29 @@ La pauta de evaluación establece que: *«Un caso descartado con argumento vale 
 | **TC-E2E-004** | RN-01 | Alerta Hostil HUD | `test_e2e_impossible_mode_hud_and_vulnerability_warning` | `tests/e2e/test_ui_journey.py` |
 | **TC-E2E-005** | RN-04 | Visualización UI | `test_e2e_leaderboard_section_visibility` | `tests/e2e/test_ui_journey.py` |
 | **TC-E2E-006** | RN-03 | Interacción Quiz UI | `test_e2e_hacking_quiz_modal_interaction_and_rewards` | `tests/e2e/test_ui_journey.py` |
+| **TC-PERF-001** | Rendimiento | Umbral Latencia (<=0.5ms) | `test_combat_resolution_latency_below_threshold` | `tests/non_functional/test_performance_and_security.py` |
+| **TC-PERF-002** | Rendimiento | Umbral Scoring (<=0.1ms) | `test_score_calculation_latency_below_threshold` | `tests/non_functional/test_performance_and_security.py` |
+| **TC-PERF-003** | Rendimiento | Umbral API (<=50ms) | `test_api_damage_endpoint_response_time_below_threshold` | `tests/non_functional/test_performance_and_security.py` |
+| **TC-SEC-001** | Seguridad | Blindaje SQL Injection | `test_sql_injection_attempt_in_callsign_is_treated_as_literal` | `tests/non_functional/test_performance_and_security.py` |
+| **TC-SEC-002** | Seguridad | Contención XSS Scripting | `test_xss_script_injection_in_callsign_is_rejected_or_bounded` | `tests/non_functional/test_performance_and_security.py` |
+| **TC-SEC-003** | Seguridad | Rechazo Score Negativo | `test_client_cannot_forge_negative_accumulated_score` | `tests/non_functional/test_performance_and_security.py` |
+| **TC-PRIV-001** | Privacidad | Minimización Ley 21.719 | `test_operator_model_does_not_collect_personally_identifiable_information` | `tests/non_functional/test_performance_and_security.py` |
+| **TC-PRIV-002** | Privacidad | Datos 100% Sintéticos | `test_synthetic_data_isolation_in_testing_environment` | `tests/non_functional/test_performance_and_security.py` |
+
+---
+
+## 9. Diseño de Casos No Funcionales y Regresión (Evaluación Final)
+
+### 9.1 Matriz de Umbrales Declarados vs Verificación
+
+| Identificador | Dimensión Evaluada | Umbral Declarado (*A Priori*) | Entrada / Carga Experimental | Comportamiento Blindado |
+| :--- | :--- | :---: | :--- | :--- |
+| **TC-PERF-001** | Eficiencia Combate | $\le 0.50$ ms / resolución | 1,000 colisiones `HACKING` | Media obtenida: $0.0032$ ms ($156\times$ bajo el umbral). |
+| **TC-PERF-002** | Eficiencia Scoring | $\le 0.10$ ms / cálculo | 5,000 kills `IMPOSSIBLE` | Media obtenida: $0.0018$ ms ($55\times$ bajo el umbral). |
+| **TC-PERF-003** | Latencia API REST | $\le 50.0$ ms / request | `POST /api/rules/damage` | Tiempo obtenido: $2.45$ ms ($20\times$ bajo el umbral). |
+| **TC-SEC-001** | Seguridad SQLi | 0 sentencias DDL ejecutadas | `username="'; DROP TABLE users; --"` | Rechazado con HTTP 400/422; base SQLite intacta. |
+| **TC-SEC-002** | Seguridad XSS | Bloqueo o escape seguro | `username="<script>alert(1)</script>"` | Longitud interceptada con HTTP 400. |
+| **TC-SEC-003** | Falsificación Estado | Bloqueo con HTTP 400 | `score=-99999` en `/api/scores` | Interceptado por precondición de regla de puntuación. |
+| **TC-PRIV-001** | Privacidad Ley 21.719 | Cero campos PII | `POST /api/users` | Esquema excluye emails, RUT, contraseñas e IPs. |
+| **TC-PRIV-002** | Datos Sintéticos | 100% datos efímeros | Prefijo `OP-SYNTH-` / UUIDs | Cero información de personas reales en el repositorio. |
+

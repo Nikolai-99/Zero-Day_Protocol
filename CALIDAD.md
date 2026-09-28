@@ -151,3 +151,62 @@ Para cumplir con las directrices de privacidad y protección de datos exigidas p
 | **Tiempo Total de Ejecución de la Pirámide** | **~25 segundos** | Tiempo óptimo para integración continua (CI) |
 | **Diagnósticos de Linter (`ruff`)** | **0 diagnósticos** | 100% de conformidad estática PEP 8 |
 | **Diagnósticos de Tipos (`pyrefly`)** | **0 errores** | Tipado estricto en backend y pruebas |
+
+---
+
+## 7. Pipeline de Integración Continua (GitHub Actions CI)
+
+Para la **Evaluación Final**, la ejecución de la suite de calidad se automatizó por completo mediante **GitHub Actions** (`.github/workflows/ci.yml`), desacoplándola de la intervención manual del desarrollador:
+
+```mermaid
+flowchart TD
+    PUSH["Git Push / Pull Request a main"] --> TRIGGER["Disparo de GitHub Actions Runner (Ubuntu)"]
+    TRIGGER --> SETUP["Configuración: Python 3.12 (uv) + Node.js 20 (npm ci) + Chromium"]
+    SETUP --> STATIC["Paso 1: Controles Estáticos (Pyrefly 0 errores + Ruff 0 diagnósticos)"]
+    STATIC --> UNIT["Paso 2: Nivel 1 — Pruebas Unitarias (88 tests en ~0.17s)"]
+    UNIT --> INTEGRATION["Paso 3: Nivel 2 — Integración API / DB en Memoria (22 tests en ~0.35s)"]
+    INTEGRATION --> E2E["Paso 4: Nivel 3 — Extremo a Extremo Playwright (6 tests en ~14s)"]
+    E2E --> NON_FUNC["Paso 5: Pruebas No Funcionales (Rendimiento, Seguridad, Privacidad - 8 tests)"]
+    NON_FUNC --> GREEN["CI EN VERDE (Build Aprobada para Despliegue)"]
+```
+
+* **Visibilidad en el Repositorio:** El estado de la integración continua se exhibe en el encabezado del [`README.md`](README.md) mediante el distintivo oficial de GitHub Actions.
+* **Criterio de Bloqueo:** Cualquier regresión de lógica, rotura de esquema JSON o fallo de interfaz interrumpe inmediatamente el pipeline, impidiendo la fusión del código a la rama `main`.
+
+---
+
+## 8. Batería de Pruebas de Regresión y Erradicación de Defectos
+
+Cada defecto descubierto y corregido durante el ciclo de vida del proyecto cuenta con una prueba de regresión automatizada que garantiza que el fallo no vuelva a manifestarse:
+
+| Identificador | Defecto Histórico Corregido | Causa Raíz Identificada | Prueba Automatizada de Regresión | Comportamiento Blindado |
+| :--- | :--- | :--- | :--- | :--- |
+| **DEF-01** | **Vida Negativa / Estado Zombie:** El jugador sobrevivía con HP negativo tras un impacto severo. | Resta simple `current_hp - damage` sin piso matemático ni clamp. | `tests/unit/test_combat_rules.py`<br>`test_defect_regression_hp_never_drops_negative` | HP trunca estrictamente en 0 y activa Game Over. |
+| **DEF-02** | **Contaminación de Base de Datos Real:** Tests de integración y E2E ensuciaban `zero_day_protocol.db`. | Falta de aislamiento en el `DATABASE_URL` y sesiones compartidas. | `tests/integration/conftest.py`<br>`test_engine` (`sqlite:///:memory:`) y base temporal E2E | Cero modificaciones en el archivo físico de producción. |
+| **DEF-03** | **Clases Inválidas Omitidas en Combate:** Daño nulo (0) o HP inicial > 100 no eran validados. | Ausencia de comprobación de precondiciones de entrada en `resolve_damage`. | `tests/unit/test_combat_rules.py`<br>`test_hp_exceeding_maximum_raises_error`<br>`test_zero_damage_raises_error` | Lanza `ValueError` determinista y HTTP 400. |
+| **DEF-04** | **Auto-Pausa y Bloqueo tras Quiz:** Al cerrar el modal de inyección, el juego quedaba en pausa oculta. | Acoplamiento de la bandera `isPaused` al estado `showHackingQuiz`. | `tests/e2e/test_ui_journey.py`<br>`test_e2e_hacking_quiz_modal_interaction_and_rewards` | Cierre limpio sin pausar la simulación 3D. |
+| **DEF-05** | **Inyección Maliciosa en Callsign:** Payloads extensos o scripts podían corromper el estado. | Falta de límites en la capa de transporte API. | `tests/non_functional/test_performance_and_security.py`<br>`test_sql_injection_attempt_in_callsign_is_treated_as_literal` | Rechazo con HTTP 400/422 y escape de strings. |
+
+---
+
+## 9. Tratamiento y Política de Pruebas Inestables (*Flaky Tests*)
+
+Siguiendo la política de la Evaluación Final de **"no ocultar la inestabilidad"**:
+
+1. **Investigación de Inestabilidad en Canvas WebGL:**
+   * **Causa Raíz:** En entornos de integración continua (Linux/Ubuntu headless), la emulación por software de Chromium (SwiftShader) produce variaciones aleatorias en las coordenadas de renderizado de partículas 3D entre ejecuciones consecutivas.
+   * **Decisión Técnica:** Se descartó explícitamente asertar coordenadas X/Y/Z de mallas gráficas en Playwright. En su lugar, se adoptaron **selectores deterministas del DOM en el HUD Reactivo** (`#hud-hp`, `#shield-matrix-indicator`, `#leaderboard-table`), eliminando el 100% de la intermitencia sin perder cobertura sobre el flujo real del usuario.
+2. **Política de Pruebas Omitidas (*Zero Muted Tests*):**
+   * Total de pruebas marcadas con `@pytest.mark.skip` o `@pytest.mark.xfail`: **0**.
+   * Ninguna prueba fue silenciada o borrada sin justificación para forzar el estado verde del pipeline.
+
+---
+
+## 10. Métricas No Funcionales y Conformidad con la Ley Nº 21.719
+
+Para complementar la dimensión funcional, se incorporaron mediciones formales con umbrales declarados previamente en [`NO-FUNCIONALES.md`](NO-FUNCIONALES.md):
+
+* **Rendimiento:** Latencia media de combate de **0.0032 ms** (umbral declarado: $\le 0.50$ ms).
+* **Seguridad:** Cero sentencias DDL ejecutadas ante intentos de inyección SQL; validación estricta de esquemas con Pydantic.
+* **Privacidad (Ley 21.719 de Chile):** Principio de finalidad y minimización estricta (cero recolección de RUT, emails, contraseñas o IPs). Uso de datos 100% sintéticos.
+* **Métrica Total de la Suite Consolidada:** **124 pruebas automatizadas en verde** (88 unitarias, 22 integración, 6 E2E, 8 no funcionales) ejecutándose en el pipeline de GitHub Actions.

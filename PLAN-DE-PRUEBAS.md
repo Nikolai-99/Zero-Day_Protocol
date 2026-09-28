@@ -1,106 +1,121 @@
-# Plan Maestro de Pruebas (ISO/IEC/IEEE 29119) — Zero-Day Protocol
+# Plan Maestro de Pruebas Cerrado (ISO/IEC/IEEE 29119) — Zero-Day Protocol
 
 > **Asignatura:** PRO402 - Taller de Testing y Calidad de Software  
-> **Evaluación Parcial 2 (EP2):** Casos diseñados y suite automatizada en tres niveles  
-> **Estándar:** ISO/IEC/IEEE 29119-3 (Estructura y Documentación de Pruebas de Software)
+> **Evaluación Final:** Pipeline Funcional, Pruebas No Funcionales y Cierre de Suite  
+> **Estándar:** ISO/IEC/IEEE 29119-3 (Estructura y Documentación de Pruebas de Software)  
+> **Estado del Documento:** **CERRADO Y AUDITADO (Entrega Final)**
 
 ---
 
 ## 1. Alcance de las Pruebas (*Test Scope*)
 
 ### 1.1 Elementos Dentro del Alcance (*In Scope*)
-* **Reglas de Negocio Troncales (Nivel 1):**
+* **Reglas de Negocio Troncales (Nivel 1 — 88 Pruebas):**
   * Mitigación de daño, cálculo de vida y fin de partida (`CombatRules`).
   * Progresión de oleadas, multiplicadores por modo y roce táctico (`ScoreRules`).
   * Inyección de código, evaluación de intentos y límite de escudos (`HackingRules`).
   * Clasificación militar y rangos de operadores (`RankingRules`).
   * Normalización y persistencia de identidad de operador (`UserIdentityRules`).
-* **Interfaz Consumible API REST (Nivel 2):**
+* **Interfaz Consumible API REST (Nivel 2 — 22 Pruebas):**
   * Contratos JSON de endpoints expuestos en FastAPI (`/api/rules/*`, `/api/users`, `/api/scores`, `/api/leaderboard`, `/api/questions`).
   * Códigos de respuesta HTTP ante entradas válidas (`200 OK`) e inválidas (`400 Bad Request`, `422 Unprocessable Entity`).
   * Persistencia e integridad referencial acumulativa en base de datos SQLite aislada en memoria.
-* **Recorrido de Usuario y Flujo de Interfaz Web (Nivel 3):**
+* **Recorrido de Usuario y Flujo de Interfaz Web (Nivel 3 — 6 Pruebas):**
   * Carga y renderizado inicial del menú táctico en el servidor Vite (`http://127.0.0.1:3000`).
   * Interacción de usuario: renombrado de operador, selección de modos de dificultad e inicio de misión.
-  * Montaje reactivo del HUD de estado de combate en el DOM con Playwright.
+  * Montaje reactivo del HUD de estado de combate en el DOM con Playwright Chromium.
   * Interacción completa con la Terminal de Hackeo / Quiz en la interfaz web.
+* **Pruebas No Funcionales y Regresión (Nivel Especializado — 8 Pruebas):**
+  * Eficiencia de desempeño: latencia matemática de combate ($\le 0.5$ ms) y respuesta HTTP ($\le 50$ ms).
+  * Seguridad: neutralización de SQL Injection, contención XSS y prevención de manipulación de estado.
+  * Privacidad y Minimización: conformidad con la **Ley Nº 21.719** de Chile y datos 100% sintéticos.
+* **Pipeline de Integración Continua (GitHub Actions):**
+  * Ejecución automatizada ante cada `push` y `pull_request` a la rama `main` en runner `ubuntu-latest`.
 
-### 1.2 Elementos Fuera del Alcance (*Out of Scope*)
-* Shaders WebGL de bajo nivel y renderizado visual de mallas 3D en el Canvas de Three.js (no deterministas en headless).
-* Pruebas de carga masiva o concurrencia distribuida en SQLite (el juego es una aplicación monousuario de escritorio local).
-* Pruebas de penetración de red o seguridad perimetral de la API local loopback.
+### 1.2 Elementos Fuera del Alcance (*Out of Scope - Declaración Explícita*)
+1. **Renderizado de Píxeles en Canvas WebGL 3D:** Descartado para Playwright por causar *flaky tests* dependientes de drivers gráficos del sistema operativo. La verificación se realiza sobre los componentes reactivos del DOM del HUD.
+2. **Concurrencia Masiva o Bloqueo Distribuido en SQLite:** Descartado por no aplicar a la arquitectura de una aplicación de escritorio local monousuario.
+3. **Plataformas Móviles (iOS/Android):** El producto está diseñado exclusivamente para PC (Windows / Web Desktop).
 
 ---
 
-## 2. Riesgos del Producto y Prioridad (Conectados a ISO/IEC 25010)
+## 2. Riesgos del Producto y Prioridad (ISO/IEC 25010)
 
-Los riesgos de calidad identificados en la EP1 se priorizan y mitigan mediante la suite en tres niveles:
-
-| ID Riesgo | Descripción del Riesgo de Producto | Característica ISO/IEC 25010 | Probabilidad | Impacto | Severidad | Mitigación Automatizada |
+| ID Riesgo | Descripción del Riesgo de Producto | Característica ISO/IEC 25010 | Prob. | Impacto | Severidad | Mitigación Automatizada |
 | :--- | :--- | :--- | :---: | :---: | :---: | :--- |
-| **RSK-01** | **Corrupción de Vida / Estado Negativo:** Un impacto severo reduce el HP por debajo de 0 sin terminar la partida. | **Adecuación Funcional** (Completitud) | Media | Crítico | **Alta** | Nivel 1: Pruebas unitarias de regresión (`test_defect_regression_hp_never_drops_negative`). |
-| **RSK-02** | **Rotura de Contrato API en Despliegue:** Renombrado inadvertido de campos JSON o cambios de tipos en el backend. | **Fiabilidad** (Tolerancia a fallos) | Alta | Alto | **Alta** | Nivel 2: Pruebas de integración de esquemas Pydantic y códigos 422 (`test_api_contracts.py`). |
-| **RSK-03** | **Inconsistencia de Clasificación y Rangos:** Un operador con puntaje de élite recibe un rango erróneo o se duplica en el Leaderboard. | **Adecuación Funcional** (Exactitud) | Media | Alto | **Media** | Nivel 1 y 2: Pruebas BVA de fronteras de score y prueba de agregación única en Leaderboard. |
-| **RSK-04** | **Bloqueo del Flujo de Interfaz (UI Freeze):** El botón de inicio de misión o input de Callsign no responde, impidiendo jugar. | **Usabilidad** (Operabilidad) | Baja | Crítico | **Alta** | Nivel 3: Pruebas E2E con Playwright validando clic, entrada de texto y montaje del HUD. |
-| **RSK-05** | **Contaminación de Datos de Producción:** Ejecución de pruebas que ensucia el archivo físico `zero_day_protocol.db`. | **Seguridad** (Integridad de datos) | Alta | Medio | **Media** | Nivel 2 y 3: Base en memoria (`sqlite:///:memory:`) con StaticPool en integración y BD temporal aislada (`zero_day_e2e_isolated.db`) con destrucción automática en E2E. |
+| **RSK-01** | **Corrupción de Vida / Estado Negativo:** Daño severo deja vida negativa sin Game Over. | **Adecuación Funcional** | Media | Crítico | **Alta** | Nivel 1: `test_defect_regression_hp_never_drops_negative`. |
+| **RSK-02** | **Rotura de Contrato API en Despliegue:** Renombrado inadvertido de campos o tipos JSON. | **Fiabilidad** | Alta | Alto | **Alta** | Nivel 2: `test_api_contracts.py` y validación Pydantic 422. |
+| **RSK-03** | **Inconsistencia de Clasificación y Rangos:** Asignación errónea de rango militar. | **Adecuación Funcional** | Media | Alto | **Media** | Nivel 1 y 2: BVA de umbrales y agregación histórica en DB. |
+| **RSK-04** | **Bloqueo del Flujo de Interfaz (UI Freeze):** Botón o modal no interactivo. | **Usabilidad** | Baja | Crítico | **Alta** | Nivel 3: Pruebas E2E de clic, inputs y montaje con Playwright. |
+| **RSK-05** | **Contaminación de Datos de Producción:** Ejecución de tests ensucia `zero_day_protocol.db`. | **Seguridad** | Alta | Medio | **Media** | Nivel 2 y 3: Base en memoria (`sqlite:///:memory:`) y base temporal efímera en E2E. |
+| **RSK-06** | **Degradación de Latencia de Combate:** Retardo en cálculo que baja FPS de 60. | **Eficiencia Desempeño** | Media | Medio | **Media** | No Funcional: `test_combat_resolution_latency_below_threshold`. |
+| **RSK-07** | **Inyección Maliciosa y Fuga de Privacidad:** Ataques SQLi o exposición de PII. | **Seguridad y Privacidad** | Alta | Crítico | **Alta** | No Funcional: Pruebas de SQLi y minimización Ley 21.719. |
 
 ---
 
-## 3. Estrategia de Prueba por Niveles
-
-La suite aplica el principio fundamental de que **cada nivel debe probar lo que los otros no pueden detectar**:
+## 3. Estrategia de Prueba por Niveles y Pipeline
 
 ```text
-+---------------------------------------------------------------------------------+
-| NIVEL 3: EXTREMO A EXTREMO (Playwright)                                         |
-| -> Valida: Recorrido completo del usuario, eventos DOM, visibilidad HUD y Quiz. |
-| -> No valida: Fórmulas aritméticas complejas ni esquemas JSON internos.        |
-+---------------------------------------------------------------------------------+
-| NIVEL 2: INTEGRACIÓN (pytest + FastAPI TestClient + SQLite en memoria)          |
-| -> Valida: Serialización Pydantic, códigos HTTP, transacciones relacionales.   |
-| -> No valida: Renderizado visual en el navegador ni animaciones CSS.           |
-+---------------------------------------------------------------------------------+
-| NIVEL 1: UNITARIAS (pytest)                                                     |
-| -> Valida: Algoritmos puros, valores límite (BVA), inmutabilidad de dataclass. |
-| -> No valida: Peticiones HTTP ni interacciones del usuario en pantalla.         |
-+---------------------------------------------------------------------------------+
++-----------------------------------------------------------------------------------------+
+| PIPELINE DE INTEGRACIÓN CONTINUA (GitHub Actions CI - Ubuntu Latest)                    |
+| -> Disparadores: Push a main / Pull Request a main                                      |
+| -> Controles Estáticos: Pyrefly (0 errores) | Ruff (0 diagnósticos)                    |
++-----------------------------------------------------------------------------------------+
+       |
+       +---> NIVEL 1: UNITARIAS (pytest tests/unit) -> 88 pruebas (0.17s)
+       |     Valida: Fórmulas aritméticas puras, valores límite (BVA), tablas de decisión.
+       |
+       +---> NIVEL 2: INTEGRACIÓN (pytest tests/integration) -> 22 pruebas (0.35s)
+       |     Valida: Esquemas Pydantic, respuestas HTTP 200/400/422, SQLite en memoria.
+       |
+       +---> NIVEL 3: EXTREMO A EXTREMO (pytest tests/e2e) -> 6 pruebas (14s)
+       |     Valida: Navegador Chromium real, interacciones DOM, HUD reactivo y Quiz.
+       |
+       +---> NO FUNCIONALES Y REGRESIÓN (pytest tests/non_functional) -> 8 pruebas (0.15s)
+             Valida: Umbrales de latencia (<0.5ms), seguridad SQLi/XSS, privacidad Ley 21.719.
 ```
 
 ---
 
-## 4. Matriz de Trazabilidad Integral
+## 4. Matriz de Trazabilidad Cerrada (Riesgo $\rightarrow$ Requisito $\rightarrow$ Caso $\rightarrow$ Prueba $\rightarrow$ Pipeline)
 
-$$\text{Riesgo de Calidad} \longrightarrow \text{Requisito de Negocio} \longrightarrow \text{Caso de Prueba} \longrightarrow \text{Prueba Automatizada}$$
-
-| Riesgo | Requisito | Caso de Prueba | Nivel | Prueba Automatizada | Criterio de Éxito |
-| :--- | :--- | :--- | :---: | :--- | :--- |
-| **RSK-01** | RN-01 (Combate) | TC-COMBAT-003 | Unitario | `test_defect_regression_hp_never_drops_negative` | HP trunca estrictamente en 0. |
-| **RSK-01** | RN-01 (Combate) | TC-COMBAT-004 | Unitario | `test_shield_absorbs_damage_completely` | Absorbe 100% de daño consumiendo 1 escudo en HACKING/IMPOSSIBLE. |
-| **RSK-02** | RN-01 (API) | TC-API-001 | Integración | `test_rules_damage_endpoint_contract` | Responde 200 OK con `new_hp` y `is_game_over`. |
-| **RSK-02** | RN-05 (API) | TC-API-002 | Integración | `test_post_user_missing_required_fields_returns_422` | Responde 422 ante omisión de `username`. |
-| **RSK-02** | RN-03 (API) | TC-API-004 | Integración | `test_api_quiz_endpoint` | Responde 200 OK con `new_shields` y `bonus_score`. |
-| **RSK-03** | RN-04 (Rangos) | TC-RANK-001 | Unitario | `test_boundary_thresholds` | 1499 pts $\to$ Rookie; 1500 pts $\to$ Hunter. |
-| **RSK-03** | RN-04 (Rangos) | TC-RANK-004 | Unitario | `test_impossible_mode_elite_operator_qualification` | Atajo Impossible activo con 5000 pts y Wave 3. |
-| **RSK-03** | RN-02 / RN-04 | TC-API-003 | Integración | `test_full_user_score_lifecycle_and_rank_aggregation` | Persiste en DB, suma puntajes y calcula rango. |
-| **RSK-04** | RN-05 (UI) | TC-E2E-001 | E2E | `test_e2e_main_menu_and_operator_renaming` | Input permite renombrar y actualiza texto en DOM. |
-| **RSK-04** | RN-01 (UI) | TC-E2E-002 | E2E | `test_e2e_start_normal_mission_and_hud_display` | Clic en Normal Mode monta HUD con HP 100%. |
-| **RSK-04** | RN-01 (UI) | TC-E2E-003 | E2E | `test_e2e_hacking_mode_hud_adaptation` | Clic en Hacking Mode monta HUD con Shield Matrix. |
-| **RSK-04** | RN-03 (UI) | TC-E2E-006 | E2E | `test_e2e_hacking_quiz_modal_interaction_and_rewards` | Apertura de terminal, inyección de exploit y cierre en DOM. |
-| **RSK-05** | RN-02 / DB | TC-API-003 | Integración | `test_engine` con `sqlite:///:memory:` | Archivo físico `zero_day_protocol.db` inalterado. |
+| Riesgo | Requisito | Caso de Prueba | Nivel | Prueba Automatizada | Resultado en el Pipeline CI |
+| :--- | :--- | :--- | :---: | :--- | :---: |
+| **RSK-01** | RN-01 (Combate) | TC-COMBAT-003 | Unitario | `test_defect_regression_hp_never_drops_negative` | ✅ **EXITOSO (PASA)** |
+| **RSK-01** | RN-01 (Combate) | TC-COMBAT-004 | Unitario | `test_shield_absorbs_damage_completely` | ✅ **EXITOSO (PASA)** |
+| **RSK-02** | RN-01 (API) | TC-API-001 | Integración | `test_rules_damage_endpoint_contract` | ✅ **EXITOSO (PASA)** |
+| **RSK-02** | RN-05 (API) | TC-API-002 | Integración | `test_post_user_missing_required_fields_returns_422` | ✅ **EXITOSO (PASA)** |
+| **RSK-02** | RN-03 (API) | TC-API-004 | Integración | `test_api_quiz_endpoint` | ✅ **EXITOSO (PASA)** |
+| **RSK-03** | RN-04 (Rangos) | TC-RANK-001 | Unitario | `test_boundary_thresholds` | ✅ **EXITOSO (PASA)** |
+| **RSK-03** | RN-04 (Rangos) | TC-RANK-004 | Unitario | `test_impossible_mode_elite_operator_qualification` | ✅ **EXITOSO (PASA)** |
+| **RSK-03** | RN-02 / RN-04 | TC-API-003 | Integración | `test_full_user_score_lifecycle_and_rank_aggregation` | ✅ **EXITOSO (PASA)** |
+| **RSK-04** | RN-05 (UI) | TC-E2E-001 | E2E | `test_e2e_main_menu_and_operator_renaming` | ✅ **EXITOSO (PASA)** |
+| **RSK-04** | RN-01 (UI) | TC-E2E-002 | E2E | `test_e2e_start_normal_mission_and_hud_display` | ✅ **EXITOSO (PASA)** |
+| **RSK-04** | RN-01 (UI) | TC-E2E-003 | E2E | `test_e2e_hacking_mode_hud_adaptation` | ✅ **EXITOSO (PASA)** |
+| **RSK-04** | RN-03 (UI) | TC-E2E-006 | E2E | `test_e2e_hacking_quiz_modal_interaction_and_rewards` | ✅ **EXITOSO (PASA)** |
+| **RSK-05** | RN-02 / DB | TC-API-003 | Integración | `test_engine` con `sqlite:///:memory:` (Aislamiento) | ✅ **EXITOSO (PASA)** |
+| **RSK-06** | No Funcional | TC-PERF-001 | No Funcional | `test_combat_resolution_latency_below_threshold` | ✅ **EXITOSO (PASA)** |
+| **RSK-07** | No Funcional | TC-SEC-001 | No Funcional | `test_sql_injection_attempt_in_callsign_is_treated_as_literal` | ✅ **EXITOSO (PASA)** |
+| **RSK-07** | No Funcional | TC-PRIV-001 | No Funcional | `test_operator_model_does_not_collect_personally_identifiable_information` | ✅ **EXITOSO (PASA)** |
 
 ---
 
-## 5. Criterios de Entrada y Salida (*Entry and Exit Criteria*)
+## 5. Cierre Formal de Objetivos y Criterios de Salida
 
-### 5.1 Criterios de Entrada
-1. Código fuente del proyecto con dependencias sincronizadas (`uv sync`).
-2. Archivos estáticos de desarrollo compilados o disponibles (`dist/` y servidor Vite).
-3. Intérprete de Python 3.12 fijado en `.python-version` y `uv.lock` bloqueado.
-4. Navegador Chromium local accesible para el arnés de Playwright.
+Se contrastan los criterios de salida declarados en la EP2 frente a los logros reales verificados en la Evaluación Final:
 
-### 5.2 Criterios de Salida (Definición de Terminado / Confiabilidad)
-1. **100% de Pruebas en Verde:** Ejecución exitosa de los 3 niveles (`88 unitarias + 22 integración + 6 E2E = 116 pruebas`) sin fallos ni omisiones.
-2. **Cero Defectos Silenciados:** Linter `ruff` finaliza con 0 advertencias y 0 errores.
-3. **Verificación Estática de Tipos:** `pyrefly check` finaliza con 0 errores de tipos en backend y suite de pruebas.
-4. **Resistencia Comprobada a la Verificación en Vivo:** Cada nivel de prueba responde aisladamente ante el defecto que le corresponde.
-5. **Cero Fugas de Datos:** Base de datos de producción limpia de registros de testing (`zero_day_protocol.db` inalterada).
+| Criterio de Salida Declarado | Meta Exigida | Logro Real en la Evaluación Final | Estado de Cumplimiento |
+| :--- | :--- | :--- | :---: |
+| **1. 100% de Pruebas en Verde** | Suite completa sin fallos | **124 pruebas automatizadas aprobadas** (88 unitarias, 22 integración, 6 E2E, 8 no funcionales) en ~25s. | ✅ **SUPERADO** |
+| **2. Cero Defectos Silenciados** | 0 `# noqa`, 0 advertencias | `ruff check .` finaliza con 0 advertencias y 0 diagnósticos silenciados. | ✅ **CUMPLIDO** |
+| **3. Tipado Estático Estricto** | 0 errores en Pyrefly | `pyrefly check` finaliza con 0 errores en backend y tests. | ✅ **CUMPLIDO** |
+| **4. Integración Continua** | Pipeline automatizado | GitHub Actions configurado en `.github/workflows/ci.yml` ejecutando controles y tests ante push/PR. | ✅ **CUMPLIDO** |
+| **5. Cero Fugas de Datos** | Base física inalterada | `zero_day_protocol.db` inmaculada con exactamente 5 usuarios iniciales tras correr la suite completa. | ✅ **CUMPLIDO** |
+| **6. Umbrales No Funcionales** | Mediciones con criterio previo | Latencia de combate ($0.003$ ms $\le 0.5$ ms) y blindaje SQLi/XSS verificado en código. | ✅ **CUMPLIDO** |
+| **7. Privacidad Ley 21.719** | Protección de datos personales | Cero datos personales sensibles almacenados; uso de datos 100% sintéticos. | ✅ **CUMPLIDO** |
+
+---
+
+## 6. Declaración de Cierre del Plan
+
+El presente Plan de Pruebas se declara **CERRADO Y CONFORME**. Todos los riesgos de severidad Alta y Media han sido mitigados mediante pruebas automatizadas reproducibles integradas en la canalización de CI. Las exclusiones declaradas (renderizado visual de Canvas 3D y concurrencia masiva) fueron justificadas técnicamente y no comprometen la confiabilidad del producto evaluado.

@@ -1,5 +1,11 @@
 # Zero-Day Protocol
 
+[![Zero-Day Protocol CI Pipeline](https://github.com/Nikolai-99/Zero-Day_Protocol/actions/workflows/ci.yml/badge.svg)](https://github.com/Nikolai-99/Zero-Day_Protocol/actions/workflows/ci.yml)
+[![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)](.python-version)
+[![Test Suite](https://img.shields.io/badge/tests-124%20passed-brightgreen.svg)](tests/)
+[![ISO 29119](https://img.shields.io/badge/standard-ISO%2FIEEE%2029119-orange.svg)](PLAN-DE-PRUEBAS.md)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](#-licencia)
+
 **Zero-Day Protocol** es un videojuego de acción y disparos en tercera persona en 3D con temática cyberpunk. Posee la agilidad clásica de juegos arcade, envuelto en una estética de postprocesado (Bloom).
 
 
@@ -150,9 +156,10 @@ La base de código se refactorizó siguiendo de forma estricta los principios **
 ```bash
 
 Zero-Day_Protocol/
-├── assets/                       # Recursos visuales y modelos 3D del juego (GLB/PNG)
-├── vendor/                       # Dependencias y paquetes empaquetados offline
-│   └── wheels/                   # Ruedas binarias precompiladas de Python (.whl)
+├── .github/                      # Automatización de Integración Continua (CI)
+│   └── workflows/ci.yml          # Pipeline de GitHub Actions (checks estáticos y 4 niveles)
+├── assets/                       # Recursos visuales locales (modelos 3D GLB, fuentes WOFF2, PNG)
+├── vendor/wheels/                # Ruedas binarias precompiladas de Python para entorno offline
 ├── backend/                      # Servicio API REST en Python (FastAPI + SQLAlchemy 2.0)
 │   ├── core/                     # Motor de conexión y sesiones SQLite
 │   ├── crud/                     # Operaciones de persistencia fuertemente tipadas
@@ -161,10 +168,11 @@ Zero-Day_Protocol/
 │   ├── schemas/                  # Esquemas Pydantic para validación de contratos
 │   ├── services/                 # Reglas de negocio puras (game_rules.py)
 │   └── main.py                   # Entrypoint FastAPI con ciclo de vida lifespan
-├── tests/                        # Pirámide de pruebas automatizada de 3 niveles (pytest)
+├── tests/                        # Suite automatizada en 3 niveles + pruebas no funcionales
 │   ├── unit/                     # Nivel 1: Pruebas unitarias de dominio puro (88 pruebas)
 │   ├── integration/              # Nivel 2: Integración API y SQLite en memoria (22 pruebas)
-│   └── e2e/                      # Nivel 3: Pruebas de interfaz E2E con Playwright (6 pruebas)
+│   ├── e2e/                      # Nivel 3: Pruebas de interfaz E2E con Playwright (6 pruebas)
+│   └── non_functional/           # Rendimiento, Seguridad y Privacidad Ley 21.719 (8 pruebas)
 ├── src/                          # Cliente WebGL / R3F en React 19 y TypeScript
 │   ├── api/                      # Clientes de comunicación HTTP con la API REST local
 │   ├── components/               # Componentes modulares SOLID de UI y Gameplay 3D
@@ -172,8 +180,10 @@ Zero-Day_Protocol/
 │   ├── store/                    # Estado global reactivo con Zustand
 │   └── types/                    # Interfaces y definiciones TypeScript
 ├── CALIDAD.md                    # Matriz de trazabilidad ISO/IEC 25010 y auditoría de calidad
-├── DISENO-DE-CASOS.md            # Diseño formal de casos (EP, BVA, tablas de decisión, descartados)
-├── PLAN-DE-PRUEBAS.md            # Plan maestro de pruebas según norma ISO/IEC/IEEE 29119
+├── DISENO-DE-CASOS.md            # Diseño formal de casos (EP, BVA, tablas de decisión, no funcionales)
+├── PLAN-DE-PRUEBAS.md            # Plan maestro de pruebas cerrado según norma ISO/IEC/IEEE 29119
+├── NO-FUNCIONALES.md             # Informe formal de pruebas no funcionales con umbrales declarados
+├── Defensa_del_desarrollador.md  # Guía de defensa presencial con respuestas técnicas al evaluador
 ├── pyproject.toml                # Configuración de uv, ruff, pyrefly y pytest
 ├── .python-version               # Versión de Python fijada (CPython 3.12)
 ├── uv.lock                       # Lockfile reproducible de dependencias de Python
@@ -185,14 +195,15 @@ Zero-Day_Protocol/
 
 ---
 
-## 📋 Pirámide de Pruebas y Cobertura de Calidad (Evaluación Práctica 2 AIEP - TALLER DE TESTING)
+## 📋 Pirámide de Pruebas, Integración Continua y Cobertura (Evaluación Final)
 
-El proyecto evoluciona incrementalmente desde la Evaluación Práctica 1 hacia una **arquitectura de aseguramiento de calidad de tres niveles** bajo el estándar **ISO/IEC/IEEE 29119**, sumando **116 pruebas automatizadas**. El dominio troncal implementado en Python puro e inmutable (`@dataclass(frozen=True)` en [`backend/services/game_rules.py`](backend/services/game_rules.py)) se complementa con la verificación formal de contratos HTTP de la API REST ([`backend/routers/rules.py`](backend/routers/rules.py)), pruebas de interfaz extremo a extremo con Playwright, y documentación formal de diseño de casos en [`DISENO-DE-CASOS.md`](DISENO-DE-CASOS.md) y [`PLAN-DE-PRUEBAS.md`](PLAN-DE-PRUEBAS.md):
+El proyecto consolida una **arquitectura de aseguramiento de calidad automatizada en GitHub Actions** bajo el estándar **ISO/IEC/IEEE 29119**, sumando **124 pruebas automatizadas** en verde. El dominio troncal implementado en Python puro e inmutable (`@dataclass(frozen=True)` en [`backend/services/game_rules.py`](backend/services/game_rules.py)) se complementa con la verificación formal de contratos HTTP de la API REST ([`backend/routers/rules.py`](backend/routers/rules.py)), pruebas de interfaz extremo a extremo con Playwright, y pruebas no funcionales de rendimiento, seguridad y privacidad en [`NO-FUNCIONALES.md`](NO-FUNCIONALES.md):
 
-### 1. Pirámide de Pruebas Automatizada en 3 Niveles (116 Pruebas)
-- **Nivel 1 — Pruebas Unitarias (`tests/unit/`):** 88 pruebas sobre las reglas de dominio puro (`CombatRules`, `ScoreRules`, `HackingRules`, `RankingRules`, `UserIdentityRules`). Cubren particiones nominales, análisis de valores límite (BVA) y la regresión del defecto histórico de vida negativa. Ejecución ultra-rápida en ~0.15s.
-- **Nivel 2 — Pruebas de Integración (`tests/integration/`):** 22 pruebas que validan los contratos HTTP de FastAPI mediante `TestClient` y una base de datos SQLite aislada en memoria (`sqlite:///:memory:` con `StaticPool`). Valida códigos de estado (200, 400, 422), esquemas Pydantic y persistencia relacional con agregación de puntajes históricos y rangos sin contaminación de datos. Ejecución en ~0.50s.
+### 1. Pirámide de Pruebas Automatizada (124 Pruebas)
+- **Nivel 1 — Pruebas Unitarias (`tests/unit/`):** 88 pruebas sobre las reglas de dominio puro (`CombatRules`, `ScoreRules`, `HackingRules`, `RankingRules`, `UserIdentityRules`). Cubren particiones nominales, análisis de valores límite (BVA) y la regresión del defecto histórico de vida negativa. Ejecución ultra-rápida en ~0.17s.
+- **Nivel 2 — Pruebas de Integración (`tests/integration/`):** 22 pruebas que validan los contratos HTTP de FastAPI mediante `TestClient` y una base de datos SQLite aislada en memoria (`sqlite:///:memory:` con `StaticPool`). Valida códigos de estado (200, 400, 422), esquemas Pydantic y persistencia relacional con agregación de puntajes históricos y rangos sin contaminación de datos. Ejecución en ~0.35s.
 - **Nivel 3 — Pruebas Extremo a Extremo con Playwright (`tests/e2e/`):** 6 pruebas sobre el frontend real servido por Vite. Valida el recorrido de usuario (*User Journey*): carga de interfaz, renombrado de operador (*Callsign*), inicio de misión en dificultad Normal (HUD con HP 100%), adaptación del HUD a escudos Matrix en Hacking Mode, alerta de muerte a 1 golpe en Impossible Mode, visibilidad del panel de clasificación (*Leaderboard*) e interacción con la terminal interactiva de Hacking Quiz. Ejecución en ~14s.
+- **Pruebas No Funcionales y Regresión (`tests/non_functional/`):** 8 pruebas especializadas con umbrales declarados previamente: latencia de combate ($\le 0.5$ ms), latencia de scoring ($\le 0.1$ ms), tiempo de respuesta HTTP ($\le 50$ ms), contención ante SQL Injection/XSS, y minimización de datos según la Ley Nº 21.719 de Chile. Ejecución en ~0.15s.
 
 ### 2. Diseño Formal de Casos de Prueba (`DISENO-DE-CASOS.md`)
 - **Particiones de Equivalencia (EP):** Clasificación sistemática de entradas en rangos válidos e inválidos para salud ($[1,99], \{100\}, \{0\}, <0$), modos canónicos (`NORMAL`, `HACKING`, `IMPOSSIBLE`), daño y formato de nombre de operador.
@@ -240,20 +251,24 @@ uv run pyrefly check
 # Valida reglas E, F, W, I sin diagnósticos silenciados
 uv run ruff check .
 
-# 4. Batería de pruebas automatizadas (Pytest)
-# Ejecuta 116 pruebas automatizadas en los 3 niveles de la pirámide (Unit, Integration, E2E)
+# 4. Batería de pruebas automatizadas completa (Pytest)
+# Ejecuta las 124 pruebas automatizadas en todos los niveles (Unit, Integration, E2E, Non-Functional)
 uv run pytest
+
+# 5. Ejecución selectiva de pruebas no funcionales y de seguridad
+uv run pytest tests/non_functional
 ```
 
 > [!NOTE]
 > Para conocer la matriz de trazabilidad ISO/IEC 25010, la justificación de diagnósticos y el registro estructurado de hallazgos de auditoría, consulte el documento [`CALIDAD.md`](CALIDAD.md).
 > Para revisar el diseño formal de casos de prueba (Particiones de Equivalencia, BVA y Tablas de Decisión), consulte [`DISENO-DE-CASOS.md`](DISENO-DE-CASOS.md) y [`PLAN-DE-PRUEBAS.md`](PLAN-DE-PRUEBAS.md).
+> Para auditar las mediciones de latencia, defensas de inyección SQL/XSS y privacidad según la Ley 21.719, consulte [`NO-FUNCIONALES.md`](NO-FUNCIONALES.md).
 
 ---
 
 ## 🤖 Uso de IA o Agentes
 
-En cumplimiento riguroso de los lineamientos de transparencia de las Evaluaciones Prácticas 1 y 2 (Secciones 4.E y 3.E):
+En cumplimiento riguroso de los lineamientos de transparencia de las Evaluaciones Prácticas 1 y 2, y de la **Evaluación Final (Sección 3.E)**:
 
 ### 1. Herramientas Utilizadas y Propósito (FeedBack de implementación)
 - **Herramienta:** **Antigravity CLI** con modelos fundacionales de Google DeepMind.
@@ -261,7 +276,7 @@ En cumplimiento riguroso de los lineamientos de transparencia de las Evaluacione
   - Desacoplamiento de las 5 reglas de negocio hacia módulos de dominio puro en Python (`game_rules.py`).
   - Migración a modelos SQLAlchemy 2.0 (`Mapped[T]`) y resolución de inconsistencias de tipado estático con `pyrefly`.
   - Configuración y conformidad de linter con `ruff` (reglas E, F, W, I) con cero diagnósticos silenciados.
-  - Implementación de la batería de 116 pruebas en `pytest` (cobertura nominal, frontera, excepciones y regresión de defectos).
+  - Implementación de la batería de 124 pruebas en `pytest` (cobertura nominal, frontera, excepciones, E2E y no funcionales).
   - Estructuración de la documentación de calidad ISO/IEC 25010 en `CALIDAD.md` y diseño formal de casos en `DISENO-DE-CASOS.md`.
 
 ### 2. Qué Revisó y Corrigió el Desarrollador (Errores y Límites Detectados)
@@ -286,6 +301,26 @@ En cumplimiento estricto del criterio de criterio frente al agente de la EP2:
      **Fundamento del rechazo:** Caso descartado por ser técnicamente inviable e inestable (*flaky test*). La emulación por software de WebGL en entornos headless de Chromium no garantiza sincronización de microsegundos a 60 FPS, generando falsos negativos. El desarrollador descartó la inspección del Canvas y redirigió la prueba a la verificación determinista en el DOM del HUD reactivo (`System Status`, `HP 100%`, `Shield Matrix`) y la terminal del Quiz.
   2. *Prueba unitaria con Oleada negativa (`wave = -5`) en `ScoreRules`:* El agente propuso escribir una prueba unitaria pasando oleadas negativas a la fórmula aritmética.  
      **Fundamento del rechazo:** Caso descartado por redundancia entre capas. La precondición de entrada está rígidamente asegurada por el esquema Pydantic en FastAPI (`Field(ge=1)`) y por el store de Zustand en el cliente. Escribir pruebas repetitivas de lo mismo en múltiples capas viola el principio de la pirámide de testing (*"tres copias de lo mismo no hacen una pirámide"*).
+
+### 5. Balance del Módulo y Criterio Técnico del Desarrollador (Evaluación Final - Requisito E)
+* **Qué tareas se delegaron al agente:**
+  1. Refactorización sintáctica y estricta tipificación de modelos SQLAlchemy 2.0 (`Mapped[T]`) y esquemas Pydantic.
+  2. Generación combinatoria rápida de datos para particiones de equivalencia y tablas de decisión en tests unitarios.
+  3. Estructuración del arnés de automatización en GitHub Actions (`.github/workflows/ci.yml`).
+* **Qué se auditó rigurosamente de parte del desarrollador:**
+  1. Que ninguna prueba tocara la base de datos real `zero_day_protocol.db` (aislamiento con base en memoria).
+  2. Que los umbrales de latencia y rendimiento de `NO-FUNCIONALES.md` fueran fijados con base técnica *antes* de medir.
+  3. Que el modelo de datos cumpliera estrictamente la Ley 21.719 chilena sin almacenar información de identificación personal.
+  4. Que la interacción de Playwright fuera determinista en el DOM y no sobre mallas WebGL volátiles.
+* **Qué propuestas erróneas hizo un agente durante el módulo:**
+  1. *Aserción de mallas y coordenadas 3D en Playwright:* El agente intentó comparar posiciones de vértices en el Canvas WebGL; fue rechazado por provocar pruebas inestables (*flaky tests*) en runners de CI sin GPU.
+  2. *Reutilización de ID de candidato al renombrar:* El agente intentó reciclar el candidate_id sin validar si ya existía en la base de datos, mutando el usuario previo. Fue rechazado y corregido para generar un UUID nuevo si el nombre no coincide exactamente.
+  3. *Auto-pausa oculta tras completar el Quiz:* El agente acopló el cierre del modal de hacking a la pausa general, congelando el movimiento hasta presionar Escape. El desarrollador desacopló ambos estados en `GameScene.tsx`.
+* **Qué decisiones técnicas del proyecto corresponden enteramente al desarrollador:**
+  1. La adopción de la arquitectura 100% offline con ruedas locales en `vendor/wheels/` para garantizar reproducibilidad en cualquier entorno sin internet.
+  2. La regla de mitigación con escudos Matrix exclusivos para los modos Hacking e Impossible, manteniendo el modo Normal basado en barra de vida clásica.
+  3. La sustitución de `npm install` por `npm ci` para garantizar la inmutabilidad matemática del `package-lock.json`.
+  4. La selección de la Ley 21.719 como marco de privacidad y la directiva de cero recolección de PII.
 
 ---
 

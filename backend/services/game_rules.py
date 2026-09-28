@@ -132,7 +132,7 @@ class CombatRules:
 
         # Modo Normal: Daño a la barra de vida
         if game_mode == "NORMAL":
-            calculated_hp = max(0, current_hp - damage_amount)
+            calculated_hp = current_hp - damage_amount
             is_dead = calculated_hp == 0
             return DamageResult(
                 new_hp=calculated_hp,

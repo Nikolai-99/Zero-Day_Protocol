@@ -327,7 +327,7 @@ El juego está completamente autonomizado para funcionar en ordenadores **sin ac
    * Todos los modelos GLB e imágenes residen en la carpeta física `assets/`. El juego opera en modo silencioso sin dependencias de pistas de audio.
 
 > [!NOTE]
-> Para consultar la trazabilidad legal, licencias (SIL OFL 1.1, Apache 2.0, MIT) y especificaciones técnicas de cada asset, consulte [`assets/DOCUMENTACION_ASSETS.md`](assets/DOCUMENTACION_ASSETS.md).
+> Para consultar la trazabilidad legal, licencias (SIL OFL 1.1, Apache 2.0, MIT) y especificaciones técnicas de cada asset, consulte [`assets/README.md`](assets/README.md).
 
 ---
 
@@ -442,5 +442,5 @@ Cualquier persona, estudiante o desarrollador que clone o descargue este reposit
 El uso y modificación de este repositorio se concede bajo la condición de realizar la **correcta atribución de autoría**:
 - Conservar los créditos originales correspondientes al autor del proyecto (**Nikolai-99**).
 - Incluir un enlace al repositorio original ([`https://github.com/Nikolai-99/Zero-Day_Protocol`](https://github.com/Nikolai-99/Zero-Day_Protocol)) en bifurcaciones (*forks*), proyectos derivados o publicaciones donde se reutilice total o parcialmente este trabajo.
-- Respetar los términos de licenciamiento de los recursos y dependencias de terceros incluidos (SIL Open Font License 1.1, Apache 2.0 y MIT), documentados detalladamente en [`assets/DOCUMENTACION_ASSETS.md`](assets/DOCUMENTACION_ASSETS.md).
+- Respetar los términos de licenciamiento de los recursos y dependencias de terceros incluidos (SIL Open Font License 1.1, Apache 2.0 y MIT), documentados detalladamente en [`assets/README.md`](assets/README.md).
 

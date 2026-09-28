@@ -1,0 +1,63 @@
+name: Zero-Day Protocol CI Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  static-checks-and-test-pyramid:
+    name: Controles Estáticos y Pirámide de Pruebas
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 1. Checkout del Repositorio
+        uses: actions/checkout@v4
+
+      - name: 2. Configurar Entorno Python (3.12)
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 3. Instalar Gestor Astral uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "latest"
+
+      - name: 4. Configurar Entorno Node.js (v20)
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: 5. Sincronizar Dependencias de Python (uv sync)
+        run: uv sync
+
+      - name: 6. Instalar Dependencias de Node (npm ci determinista)
+        run: npm ci
+
+      - name: 7. Instalar Navegador Chromium para Playwright
+        run: uv run playwright install --with-deps chromium
+
+      - name: 8. Control Estático 1 - Tipado Estricto (Pyrefly)
+        run: uv run pyrefly check
+
+      - name: 9. Control Estático 2 - Linter y Calidad de Código (Ruff)
+        run: uv run ruff check .
+
+      - name: 10. Nivel 1 - Pruebas Unitarias de Dominio (Combat, Score, Hacking, Ranking, Identity)
+        run: uv run pytest tests/unit
+
+      - name: 11. Nivel 2 - Pruebas de Integración (API Contracts & SQLite en Memoria)
+        run: uv run pytest tests/integration
+
+      - name: 12. Nivel 3 - Pruebas Extremo a Extremo con Playwright (User Journey)
+        run: uv run pytest tests/e2e
+
+      - name: 13. Pruebas No Funcionales y Regresión (Rendimiento, Seguridad, Privacidad)
+        run: uv run pytest tests/non_functional

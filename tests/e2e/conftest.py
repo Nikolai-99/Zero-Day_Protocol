@@ -124,14 +124,15 @@ def browser_instance():
     browser: Browser | None = None
     for channel in ["chrome", "msedge", None]:
         try:
+            launch_args = [
+                "--no-sandbox",
+                "--disable-gpu-sandbox",
+            ]
+            if sys.platform == "win32":
+                launch_args.extend(["--use-gl=angle", "--use-angle=swiftshader"])
             launch_kwargs: dict[str, Any] = {
                 "headless": True,
-                "args": [
-                    "--use-gl=angle",
-                    "--use-angle=swiftshader",
-                    "--no-sandbox",
-                    "--disable-gpu-sandbox",
-                ],
+                "args": launch_args,
             }
             if channel:
                 launch_kwargs["channel"] = channel

@@ -183,6 +183,8 @@ Zero-Day_Protocol/
 ├── DISENO-DE-CASOS.md            # Diseño formal de casos (EP, BVA, tablas de decisión, no funcionales)
 ├── PLAN-DE-PRUEBAS.md            # Plan maestro de pruebas cerrado según norma ISO/IEC/IEEE 29119
 ├── NO-FUNCIONALES.md             # Informe formal de pruebas no funcionales con umbrales declarados
+├── GAMEPLAY.md                   # Guía de mecánicas, modos de juego y controles de combate FPS
+├── OPTIMIZACIONES.md             # Arquitectura del motor 3D WebGL, Zero-GC y optimizaciones iGPU
 ├── pyproject.toml                # Configuración de uv, ruff, pyrefly y pytest
 ├── .python-version               # Versión de Python fijada (CPython 3.12)
 ├── uv.lock                       # Lockfile reproducible de dependencias de Python
@@ -365,101 +367,10 @@ El juego está completamente autonomizado para funcionar en ordenadores **sin ac
 
 ---
 
-## 🕹️ Controles de Combate FPS
-* **Click Izquierdo**: Captura el puntero del mouse (**Pointer Lock**) para controlar libremente la mirada horizontal e iniciar ráfagas de disparo láser.
-* **WASD (Teclado)**: Moverse por el plano XZ de manera ágil (movimiento absoluto relativo a la escena para optimizar el esquive intuitivo de balas).
-* **Shift (Izq/Der) + A/D (con o sin W/S)**: Realiza un **Giro de Barril** (Barrel Roll) de 500ms. Desplaza físicamente al jugador 14.0 unidades hacia la dirección indicada (soporta movimientos diagonales como adelante-izquierda con A+W, atrás-derecha con D+S, etc.) de forma gradual y fluida. La nave describe un bucle circular ("O") físico de esquive en pantalla con un giro de 360°, aplicando un destello de Bloom momentáneo de alta intensidad. Otorga **invulnerabilidad total** contra proyectiles enemigos durante toda la duración del movimiento (cooldown de 500ms).
-* **Espacio**: Disparar proyectiles láser de alta velocidad.
-* **Alt+Tab / Click Fuera**: Libera automáticamente el cursor del mouse. Al morir o ganar, el puntero se libera inmediatamente para poder interactuar con los menús de reinicio.
+## 🕹️ Mecánicas de Juego y Controles
 
-### 🎮 Modos de Juego
-El juego se divide en tres modos con comportamiento de dificultad diferenciado:
-
-* **Normal Mode**:
-  * Hitbox física del jugador estrecha y precisa de **0.24 unidades**.
-  * Sistema de **Graze** activo: rozar proyectiles a menos de 0.55 otorga +15 puntos sin dañar.
-  * Los enemigos básicos **KiT** requieren de **4 impactos** para ser derrotados (4 HP).
-  * Disparos directos de enemigos hacia el jugador (sin predicción).
-  * Cadencia de fuego normal (1200ms) y velocidad de apuntado estándar.
-  * Spawnea de 1 a 3 bloques blancos por cada ronda.
-  * El jugador dispone de una barra de HP y progresa hasta la ronda 5 (Max Waves).
-  
-* **Hacking Mode (1-Hit Mode)**:
-  * Hitbox de colisión de **0.24 unidades** con sistema de Graze activo.
-  * Los enemigos básicos **KiT** requieren de **4 impactos** para ser derrotados (4 HP).
-  * Sin HP: cualquier impacto directo causa muerte instantánea a menos que se posean escudos.
-  * Destruir bloques blancos otorga stacks de escudo (máximo 5) que absorben impactos.
-  * Spawnea de 1 a 3 bloques blancos por cada ronda.
-  * Rondas infinitas con enemigos que aumentan su velocidad gradualmente.
-  
-* **Impossible Mode**:
-  * **Hitbox Castigadora**: Se incrementa a **0.55 unidades** (todo roce cuenta como impacto directo, desactivando el Graze).
-  * Los enemigos básicos **KiT** requieren de **1 impacto** para ser derrotados (1 HP) manteniendo la alta dificultad de este modo.
-  * **IA de Predicción Dinámica**: Los enemigos básicos **KiT** estiman la posición futura del jugador (lead aiming) basándose en su velocidad, pero **solo cuando se mueve rápido (> 5.0 u/s)**. Si el jugador avanza de forma metódica o lenta, los disparos vuelven a ser directos. Esto otorga un margen de ventaja que el jugador puede aprovechar para superar este modo con mayor facilidad, es decir: lograr derrotar unos cuantos enemigos y luego proceder a hacer movimientos lentos y metódicos para esquivar proyectiles de manera controlada y predecible.
-  * **Fuego Abrasador**: Cadencia de disparo de los enemigos **KiT** acelerada a **170 ms** con apuntado ultrarrápido (fijación de mira instantánea).
-  * **Escasez de Recursos**: Los cubos blancos de escudo solo spawnean en la ronda 1 y en rondas múltiplos de 3 (rondas 3, 6, 9...), generando solo de 1 a 2 bloques de forma aleatoria.
-  * Rondas infinitas como en Hacking Mode.
-
-* **Fuerza de Spawn Inicial (Todos los modos)**: Se redujo a **15 enemigos KiT** al inicio de la ronda 1 para un arranque balanceado y progresivo.
-* **Hitbox y Colisión de Balas**: El jugador puede disparar y destruir proyectiles enemigos para abrirse paso.
-
-
-
----
-
-## ⚡ Optimización de Rendimiento y Arranque
-
-Para ofrecer una experiencia fluida a 60 FPS estables y un inicio de juego ultra-rápido, se implementaron las siguientes optimizaciones de rendimiento a bajo nivel:
-
-### 1. Caché de Sombreadores (Shader Disk Cache)
-* **Persistencia del Caché**: Se deshabilitó la limpieza automática de caché programática al iniciar la aplicación (`session.defaultSession.clearCache()`). Esto permite a Chromium conservar la caché en disco de sombreadores de WebGL compilados. En los arranques subsecuentes del juego, los shaders se cargan al instante sin consumo de CPU/GPU.
-* **Flags de GPU en Electron**: Se configuraron modificadores avanzados directamente sobre el motor Chromium en [electron-main.js](file:///C:/Users/Felip/Escritorio/Zero-Day_Protocol/electron-main.js) para habilitar rasterización de GPU acelerada, aceleración por hardware incondicional (`ignore-gpu-blocklist`) y forzar el uso de la tarjeta de video dedicada en ordenadores portátiles de doble GPU (`force-high-performance-gpu`).
-
-### 2. Precalentamiento de Shaders (Shader Warmup)
-* **Warmup al Inicializar**: Three.js compila shaders por defecto de manera tardía (al renderizar por primera vez un objeto), lo cual producía micro-congelamientos (*stuttering*) durante el gameplay (especialmente al disparar el primer proyectil).
-* **Escena Dummy de Carga**: Implementamos un precalentamiento asíncrono de materiales en [src/utils/shaderWarmup.ts](file:///C:/Users/Felip/Escritorio/Zero-Day_Protocol/src/utils/shaderWarmup.ts). Al montarse la aplicación, se genera una escena phantom que compila los materiales de proyectiles del jugador y enemigos antes de que termine el Splash Screen.
-
-### 3. Splash Screen Reactivo por Eventos (IPC)
-* **Transición Inteligente**: El Splash Screen ya no utiliza un tiempo muerto artificial de 2.5 segundos. Ahora, el Canvas notifica mediante IPC al proceso principal de Electron (`app-ready`) inmediatamente después de concluir el calentamiento de shaders. La ventana principal se muestra de inmediato, recortando el tiempo de carga a escasos milisegundos en arranques subsecuentes.
-
-### 4. Arquitectura de Alto Rendimiento para Hardware de Bajos Recursos (Target: i5-8250U / Intel UHD 620 a 60 FPS)
-
-Para garantizar **60 FPS estables sin micro-pausas ni caídas de fotogramas (stuttering)** en procesadores de bajo consumo con gráficos integrados (por ejemplo, Intel Core i5-8250U con Intel UHD Graphics 620 y TDP de 15W):
-
-* **Renderizado Instanciado con `THREE.InstancedMesh` (`DynamicObjectRenderer.tsx`)**:
-  * **Colapso de Draw Calls:** Se eliminó el mapeo individual de mallas (`<BulletMesh>`, `<ParticleSystem>`) que generaba entre 150 y 250+ draw calls por cuadro. Se implementó `THREE.InstancedMesh` con una sola llamada para todas las balas láser y una sola llamada para todas las partículas de impacto (reducción a **2 draw calls fijas**).
-  * **Cero Re-renders en React:** Se erradicó el hook `setTick(t => t + 1)` que forzaba la reconciliación virtual del DOM y re-renders masivos a 60 Hz. Las posiciones, rotaciones y escalas se actualizan directamente en la memoria del buffer gráfico mediante `setMatrixAt` y `setColorAt`.
-
-* **Arquitectura Zero-GC (Anti Garbage Collector Spikes)**:
-  * **Identificadores Atómicos Rápidos:** Se sustituyó `uuidv4()` en bucles de disparo y explosiones por generadores atómicos de IDs numéricos secuenciales (`getFastBulletId()`, `getNextEntityId()`), previniendo la instanciación de cientos de cadenas UUID en el heap por segundo.
-  * **Compactación In-Place de Arrays:** Se reemplazó el uso de `.filter()` dentro del bucle de simulación principal (`useFrame` en `GameScene.tsx`) por compactación de arreglos en el mismo índice (`array.length = writeIndex`), eliminando la recolección de basura periódica que provocaba pausas de 15-40 ms (V8 GC stop-the-world).
-  * **Preasignación de Buffers de Audio:** En `audioSystem.ts`, el arreglo de frecuencias del analizador de audio Web Audio API (`Uint8Array`) se mantiene preasignado como propiedad interna, evitando 3,600 asignaciones por minuto.
-
-* **Optimización Algorítmica del Motor de Colisiones (`collisionManager.ts`)**:
-  * **Distancias Cuadradas (`getDistanceSq2D`):** Se eliminó el uso de `Math.sqrt()` en el bucle continuo de detección de proyectiles, reemplazándolo por comparaciones de radio al cuadrado ($d^2 \le r^2$), aliviando significativamente la unidad de punto flotante de la CPU.
-  * **Desacoplamiento Bala-Bala en Un Solo Paso:** Se separaron los proyectiles en sub-listas pre-filtradas (jugador vs enemigos), reduciendo la complejidad del bucle de colisión mutua en más del 84%.
-  * **Scratchpads Estáticos:** Los cálculos de daño radial y posición de impacto reutilizan vectores globales preasignados (`_explosionCenter`), sin instanciar objetos temporales en tiempo de ejecución.
-
-* **Suscripciones Atómicas de Zustand (`GameScene.tsx`)**:
-  * Se sustituyó la desestructuración reactiva completa del store (`useGameStore()`) por selectores atómicos específicos (`useGameStore(s => s.gameState)`).
-  * Las mutaciones de estado frecuentes (puntaje, daño, temporizadores, oleadas) acceden directamente al estado subyacente mediante `useGameStore.getState()`, garantizando que el árbol 3D de Three.js nunca sufra re-renders por cambios de UI.
-
-* **Optimización de Post-procesado y Canvas para GPU Integrada (iGPU)**:
-  * **Canvas WebGL:** Configurado con `powerPreference: 'high-performance'`, `antialias: false` (innecesario gracias a la dispersión de Bloom, ahorrando ancho de banda de memoria compartida DDR4), `stencil: false`, `alpha: false`.
-  * **Efectos de Post-procesado:** `multisampling={0}` en el `EffectComposer` de `@react-three/postprocessing`, evitando pasadas de multisampling pesadas sobre la memoria de video compartida de la iGPU.
-  * **Depuración de Sombras:** Se eliminaron las directivas residuales `castShadow` y `receiveShadow` en `PlayerMesh`, `BlockMesh` y `EnemyMeshes`, evitando sobrecarga innecesaria en los shaders de Three.js.
-  * **Aislamiento en Menús:** Eliminación de canvas de fondo y renderizado 3D fuera del combate activo, reduciendo el consumo de GPU a 0% mientras se navega por menús y leaderboards.
-
----
-
-## 🛠️ Gestión de Caché en Desarrollo
-
-Dado que la aplicación de producción ahora conserva el caché de sombreadores y recursos para maximizar la performance, si durante el desarrollo realizas modificaciones de CSS, HTML o Shaders y necesitas limpiar el caché para evitar fricciones o renderizados desactualizados, puedes:
-
-1. **Desactivar Caché en DevTools**: Abre las DevTools (se abren automáticamente en Modo Dev), ve a la pestaña **Network** y activa la opción **Disable Cache** mientras las herramientas estén abiertas.
-2. **Hard Reload**: Presiona `Ctrl + F5` o `Ctrl + Shift + R` dentro de la ventana de desarrollo del juego.
-3. **Launcher Automatizado**: El archivo launcher [run_dev.bat](file:///C:/Users/Felip/Escritorio/Zero-Day_Protocol/run_dev.bat) sigue borrando de manera automática el caché en la carpeta temporal de desarrollo `%APPDATA%\zero_day_protocol` antes de cada inicio.
-
+> 📖 Para consultar la guía completa de combate, maniobras de evasión y balance de oleadas, consulte [`GAMEPLAY.md`](GAMEPLAY.md).  
+> ⚡ Para la arquitectura interna del motor WebGL, renderizado instanciado, Zero-GC y optimizaciones a 60 FPS en iGPUs, consulte [`OPTIMIZACIONES.md`](OPTIMIZACIONES.md).
 ---
 
 ## 📄 Licencia y Atribución

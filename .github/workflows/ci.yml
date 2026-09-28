@@ -28,6 +28,7 @@ jobs:
         uses: astral-sh/setup-uv@v5
         with:
           version: "latest"
+          enable-cache: false
 
       - name: 4. Configurar Entorno Node.js (v20)
         uses: actions/setup-node@v4

@@ -114,6 +114,22 @@ export const HackingQuizModal: React.FC<HackingQuizModalProps> = ({
     }
   };
 
+  const handleBossAdvance = () => {
+    try {
+      document.body.requestPointerLock?.();
+    } catch {}
+    if (onBossSuccess) onBossSuccess();
+    else onClose();
+  };
+
+  const handleBossRetry = () => {
+    try {
+      document.body.requestPointerLock?.();
+    } catch {}
+    if (onBossFail) onBossFail();
+    else onClose();
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn pointer-events-auto">
       <div className="relative w-full max-w-2xl max-h-[92vh] overflow-y-auto bg-neutral-950 border border-green-500/60 shadow-[0_0_35px_rgba(34,197,94,0.25)] rounded p-6 font-mono text-green-400">
@@ -134,9 +150,17 @@ export const HackingQuizModal: React.FC<HackingQuizModalProps> = ({
           </div>
           <button
             onClick={() => {
-              if (isBossMode && !isAnsweredCorrectly) {
-                if (onBossFail) onBossFail();
-                else onClose();
+              if (isBossMode) {
+                try {
+                  document.body.requestPointerLock?.();
+                } catch {}
+                if (!isAnsweredCorrectly) {
+                  if (onBossFail) onBossFail();
+                  else onClose();
+                } else {
+                  if (onBossSuccess) onBossSuccess();
+                  else onClose();
+                }
               } else {
                 onClose();
               }
@@ -242,7 +266,7 @@ export const HackingQuizModal: React.FC<HackingQuizModalProps> = ({
               <div className="pt-2 flex justify-end gap-2">
                 {isAnsweredCorrectly && (
                   <button
-                    onClick={() => (onBossSuccess ? onBossSuccess() : onClose())}
+                    onClick={handleBossAdvance}
                     className="px-5 py-2 border border-green-500 bg-green-500 text-black font-bold text-xs uppercase tracking-widest hover:bg-green-400 transition-all shadow-[0_0_15px_rgba(34,197,94,0.4)]"
                   >
                     {wave >= 20 ? 'RECLAMAR VICTORIA >>' : `AVANZAR A LA OLEADA ${wave + 1} >>`}
@@ -250,7 +274,7 @@ export const HackingQuizModal: React.FC<HackingQuizModalProps> = ({
                 )}
                 {isFailed && (
                   <button
-                    onClick={() => (onBossFail ? onBossFail() : onClose())}
+                    onClick={handleBossRetry}
                     className="px-5 py-2 border border-red-500 bg-red-600 text-white font-bold text-xs uppercase tracking-widest hover:bg-red-500 transition-all shadow-[0_0_15px_rgba(239,68,68,0.4)]"
                   >
                     REINICIAR OLEADA {wave} &gt;&gt;

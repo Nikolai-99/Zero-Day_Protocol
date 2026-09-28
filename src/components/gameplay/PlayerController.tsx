@@ -159,8 +159,13 @@ export const PlayerController: React.FC<PlayerControllerProps> = ({
     
     const onMouseDown = () => {
         isMouseDown.current = true;
-        if (isGameActive) {
-            document.body.requestPointerLock();
+        const store = useGameStore.getState();
+        if ((isGameActive || store.gameState === 'PLAYING') && !store.bossQuiz.isOpen) {
+            if (document.pointerLockElement !== document.body) {
+                try {
+                    document.body.requestPointerLock();
+                } catch {}
+            }
         }
     };
     
@@ -182,9 +187,14 @@ export const PlayerController: React.FC<PlayerControllerProps> = ({
     };
 
     const onPointerLockChange = () => {
-        // Si el puntero se libera y el estado del juego era PLAYING, pausamos el juego automáticamente
-        if (document.pointerLockElement !== document.body && useGameStore.getState().gameState === 'PLAYING') {
-            useGameStore.getState().setGameState('PAUSED');
+        const store = useGameStore.getState();
+        // Si el puntero se libera para el Quiz de jefe o recientemente (ventana de gracia de 2s), NO pausar el juego
+        if (store.bossQuiz.isOpen || store.bossQuiz.status !== 'IDLE' || Date.now() - store.lastQuizActionTime < 2000) {
+            return;
+        }
+        // Si el puntero se libera y el estado del juego era PLAYING por acción deliberada (ej. Escape o Alt+Tab), pausamos
+        if (document.pointerLockElement !== document.body && store.gameState === 'PLAYING') {
+            store.setGameState('PAUSED');
         }
     };
 
@@ -210,6 +220,10 @@ export const PlayerController: React.FC<PlayerControllerProps> = ({
 
   // --- Release Pointer Lock when game is no longer active (Reboot, GameOver, Victory, Menu) ---
   useEffect(() => {
+    const store = useGameStore.getState();
+    // Si el quiz de combate está abierto, no interferir con la liberación de puntero
+    if (store.bossQuiz.isOpen) return;
+
     if (!isGameActive) {
       if (document.pointerLockElement === document.body) {
         document.exitPointerLock();

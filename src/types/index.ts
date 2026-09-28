@@ -100,6 +100,7 @@ export interface GameStore {
     wave: number;
     status: 'IDLE' | 'PENDING' | 'SUCCESS' | 'FAILED';
   };
+  lastQuizActionTime: number;
   openBossQuiz: (wave: number) => void;
   resolveBossQuiz: (success: boolean) => void;
   closeBossQuiz: () => void;

@@ -247,20 +247,22 @@ export const GameScene: React.FC<GameSceneProps> = ({ onRestart }) => {
         setGameState('VICTORY');
       } else {
         const nextWave = currentWave + 1;
+        setGameState('PLAYING');
         setWave(nextWave);
         spawnWave(nextWave);
-        setTimeout(() => {
+        try {
           document.body.requestPointerLock?.();
-        }, 100);
+        } catch {}
       }
     } else if (bossQuiz.status === 'FAILED') {
       const { wave: currentWave } = useGameStore.getState();
       closeBossQuiz();
+      setGameState('PLAYING');
       // Reinicia la ronda actual en Hacking Mode tras fallo de exploit
       spawnWave(currentWave);
-      setTimeout(() => {
+      try {
         document.body.requestPointerLock?.();
-      }, 100);
+      } catch {}
     }
   }, [bossQuiz.status, closeBossQuiz, setGameState, setWave]);
 
@@ -658,11 +660,12 @@ export const GameScene: React.FC<GameSceneProps> = ({ onRestart }) => {
     if (allEnemiesDead && !isTransitioning.current && bossQuiz.status === 'IDLE') {
         const isHackingBossWave = gameMode === 'HACKING' && wave % 5 === 0;
         if (isHackingBossWave) {
+            // Primero abrir el estado de quiz en store para que los listeners sepan que es intencional
+            openBossQuiz(wave);
             // Liberar puntero para permitir interacción con la terminal de quiz
             if (document.exitPointerLock) {
                 document.exitPointerLock();
             }
-            openBossQuiz(wave);
         } else {
             isTransitioning.current = true;
             waveTransitionTimer.current = 0.5; // Fast transition 

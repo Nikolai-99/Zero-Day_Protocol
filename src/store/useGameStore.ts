@@ -45,6 +45,7 @@ const initialState = {
     wave: 1,
     status: 'IDLE' as const,
   },
+  lastQuizActionTime: 0,
 };
 
 export const useGameStore = create<GameStore>((set, get) => ({
@@ -67,13 +68,16 @@ export const useGameStore = create<GameStore>((set, get) => ({
     maxWaves: m === 'HACKING' ? 20 : (m === 'NORMAL' ? 5 : 9999) 
   }),
   openBossQuiz: (wave: number) => set({
-    bossQuiz: { isOpen: true, wave, status: 'PENDING' }
+    bossQuiz: { isOpen: true, wave, status: 'PENDING' },
+    lastQuizActionTime: Date.now(),
   }),
   resolveBossQuiz: (success: boolean) => set((state) => ({
-    bossQuiz: { ...state.bossQuiz, isOpen: false, status: success ? 'SUCCESS' : 'FAILED' }
+    bossQuiz: { ...state.bossQuiz, isOpen: false, status: success ? 'SUCCESS' : 'FAILED' },
+    lastQuizActionTime: Date.now(),
   })),
   closeBossQuiz: () => set((state) => ({
-    bossQuiz: { ...state.bossQuiz, isOpen: false, status: 'IDLE' }
+    bossQuiz: { ...state.bossQuiz, isOpen: false, status: 'IDLE' },
+    lastQuizActionTime: Date.now(),
   })),
   addShieldStack: () => {
     const current = get().shieldStacks;
@@ -173,6 +177,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       leaderboard: state.leaderboard,
       devMode: state.devMode,
       bossQuiz: { isOpen: false, wave: 1, status: 'IDLE' },
+      lastQuizActionTime: 0,
     }));
   },
   
@@ -191,6 +196,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       leaderboard: state.leaderboard,
       devMode: state.devMode,
       bossQuiz: { isOpen: false, wave: 1, status: 'IDLE' },
+      lastQuizActionTime: 0,
     }));
   },
 }));

@@ -28,4 +28,7 @@ def save_score(score: schemas.ScoreCreate, db: Session = Depends(get_db)):
             ),
         )
 
-    return crud.create_or_accumulate_score(db=db, score=score)
+    try:
+        return crud.create_or_accumulate_score(db=db, score=score)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))

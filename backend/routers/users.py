@@ -10,15 +10,18 @@ router = APIRouter(prefix="/api/users", tags=["users"])
 
 @router.post("", response_model=schemas.User)
 def register_or_restore_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
-    db_user, is_restored = crud.register_or_restore_user(
-        db=db, username=user.username, candidate_id=user.id
-    )
-    return schemas.User(
-        id=db_user.id,
-        username=db_user.username,
-        created_at=db_user.created_at,
-        is_restored=is_restored,
-    )
+    try:
+        db_user, is_restored = crud.register_or_restore_user(
+            db=db, username=user.username, candidate_id=user.id
+        )
+        return schemas.User(
+            id=db_user.id,
+            username=db_user.username,
+            created_at=db_user.created_at,
+            is_restored=is_restored,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @router.get("/by-name/{username}", response_model=schemas.User)

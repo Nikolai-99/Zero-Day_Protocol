@@ -281,7 +281,7 @@ class HackingRules:
 
         if selected_option == correct_option:
             shields_to_add = (
-                cls.FIRST_TRY_SHIELD_BONUS if attempts_used == 1 else cls.NORMAL_SHIELD_BONUS
+                cls.FIRST_TRY_SHIELD_BONUS if attempts_used != 1 else cls.NORMAL_SHIELD_BONUS
             )
             score_bonus = cls.FIRST_TRY_SCORE_BONUS if attempts_used == 1 else cls.RETRY_SCORE_BONUS
 

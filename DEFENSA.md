@@ -63,3 +63,38 @@ La evaluación se realiza de forma individual con el repositorio en pantalla y l
   > 
   > 3. **Propuesta Errónea de Gameplay (Auto-Pausa Silenciosa):** Al implementar el cierre del modal del Hacking Quiz, el agente dejó enlazada la variable `isPaused`. Me di cuenta jugando la build: al pasar el quiz en la oleada 5, la nave no respondía al teclado hasta tocar Escape. Desacoplé ambos estados en `GameScene.tsx`."*
 
+### 6. ¿Cómo funciona el flujo del Pipeline?
+
+* **Respuesta del Desarrollador:**
+  > *"El pipeline de Integración Continua ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) está diseñado bajo el principio de **Fail-Fast (Fallo Temprano)** y la **Pirámide de Pruebas de Mike Cohn**. Su propósito es actuar como una aduana de calidad estricta y determinista: ningún cambio puede integrarse a la rama `main` si presenta inconsistencias de tipado, estilo, regresiones funcionales o degradación del rendimiento.*
+  >
+  > *El flujo se estructura conceptualmente en 4 fases secuenciales:*
+  > 1. * **Aprovisionamiento y Entorno Hermético:** Descarga el código y prepara los runtimes de Python 3.12 y Node.js v20, instalando dependencias deterministas mediante lockfiles (`uv.lock` y `package-lock.json`) y el navegador Chromium para pruebas de interfaz.*
+  > 2. * **Puertas de Análisis Estático (Quality Gates):** Valida tipos con Pyrefly y estilo/calidad con Ruff en segundos, abortando el pipeline antes de gastar recursos si hay errores de sintaxis o tipado.*
+  > 3. * **Ejecución de la Pirámide de Pruebas:** Ejecuta de abajo hacia arriba la suite de pruebas: primero pruebas unitarias aisladas (`tests/unit`), luego pruebas de integración con base de datos en memoria y contratos API (`tests/integration`), y finalmente pruebas End-to-End con Playwright (`tests/e2e`).*
+  > 4. * **Validación No Funcional y Regresión:** Asegura que los umbrales de latencia, seguridad y privacidad no hayan sufrido regresión.*
+  >
+  > *A continuación, defiendo y explico cada línea del archivo de configuración:*
+  >
+  > | Líneas | Código en `ci.yml` | Explicación Técnica y Justificación de Diseño |
+  > | :--- | :--- | :--- |
+  > | `L1` | `name: Zero-Day Protocol CI Pipeline` | Nombre identificador legible del flujo de trabajo desplegado en la interfaz de GitHub Actions. |
+  > | `L3-L5` | `on:`<br>`  push:`<br>`    branches: [ main ]` | **Disparador 1:** Gatilla automáticamente la ejecución del pipeline ante cualquier commit directo o merge completado en la rama productiva `main`. |
+  > | `L6-L7` | `  pull_request:`<br>`    branches: [ main ]` | **Disparador 2:** Evalúa automáticamente cualquier Pull Request propuesta cuyo destino sea `main`, impidiendo el merge si alguna etapa falla. |
+  > | `L9-L10`| `concurrency:`<br>`  group: ${{ github.workflow }}-${{ github.ref }}` | Agrupa las corridas activas utilizando el nombre del pipeline y la referencia Git (rama o PR) como clave única. |
+  > | `L11` | `  cancel-in-progress: true` | **Optimización de Recursos:** Si un desarrollador envía un nuevo commit mientras una ejecución anterior aún está corriendo, cancela inmediatamente la anterior para no desperdiciar minutos de máquina ni analizar código obsoleto. |
+  > | `L13-L15`| `jobs:`<br>`  static-checks-and-test-pyramid:`<br>`    name: Controles Estáticos y Pirámide de Pruebas` | Declara el trabajo principal y su identificador descriptivo en el panel de ejecución. |
+  > | `L16` | `    runs-on: ubuntu-latest` | Especifica el entorno de ejecución: una máquina virtual Ubuntu Linux limpia, actualizada y provista por GitHub. |
+  > | `L18-L20`| `    steps:`<br>`      - name: 1. Checkout del Repositorio`<br>`        uses: actions/checkout@v4` | Clona el repositorio Git dentro del runner virtual en el directorio de trabajo actual. |
+  > | `L22-L25`| `      - name: 2. Configurar Entorno Python (3.12)`<br>`        uses: actions/setup-python@v5`<br>`        with:`<br>`          python-version: "3.12"` | Provee e inicializa el runtime oficial de Python versión 3.12 requerido para el backend y las herramientas de análisis. |
+  > | `L27-L31`| `      - name: 3. Instalar Gestor Astral uv`<br>`        uses: astral-sh/setup-uv@v5`<br>`        with:`<br>`          version: "latest"`<br>`          enable-cache: false` | Instala `uv`, el gestor de paquetes ultrarrápido en Rust. Se fija `enable-cache: false` para forzar una sincronización limpia, sin sesgos por caché residual del runner. |
+  > | `L33-L37`| `      - name: 4. Configurar Entorno Node.js (v20)`<br>`        uses: actions/setup-node@v4`<br>`        with:`<br>`          node-version: "20"`<br>`          cache: "npm"` | Instala Node.js v20 (LTS) necesario para el frontend React/Vite/Electron, activando la caché global de npm para acelerar descargas. |
+  > | `L39-L40`| `      - name: 5. Sincronizar Dependencias de Python (uv sync)`<br>`        run: uv sync` | Crea el entorno virtual `.venv` e instala exactamente las dependencias bloqueadas en [`uv.lock`](uv.lock), garantizando determinismo absoluto. |
+  > | `L42-L43`| `      - name: 6. Instalar Dependencias de Node (npm ci determinista)`<br>`        run: npm ci` | Ejecuta una instalación limpia (`clean install`) del frontend a partir de [`package-lock.json`](package-lock.json), evitando mutaciones en el árbol de dependencias que `npm install` podría provocar. |
+  > | `L45-L46`| `      - name: 7. Instalar Navegador Chromium para Playwright`<br>`        run: uv run playwright install --with-deps chromium` | Descarga el binario del navegador Chromium y las librerías de sistema operativo requeridas para levantar pruebas de interfaz gráfica en entornos headless (sin display físico). |
+  > | `L48-L49`| `      - name: 8. Control Estático 1 - Tipado Estricto (Pyrefly)`<br>`        run: uv run pyrefly check` | **Quality Gate Estático 1:** Verifica estáticamente la consistencia de tipos en Python para prevenir errores de tipo en tiempo de ejecución. |
+  > | `L51-L52`| `      - name: 9. Control Estático 2 - Linter y Calidad de Código (Ruff)`<br>`        run: uv run ruff check .` | **Quality Gate Estático 2:** Analiza el código con Ruff a máxima velocidad, verificando normas PEP 8, importaciones no utilizadas y potenciales bugs sintácticos. |
+  > | `L54-L55`| `      - name: 10. Nivel 1 - Pruebas Unitarias de Dominio (Combat, Score, Hacking, Ranking, Identity)`<br>`        run: uv run pytest tests/unit` | **Base de la Pirámide:** Ejecuta las pruebas unitarias de lógica pura de negocio en milisegundos sin I/O, garantizando que las reglas de combate y puntuación no tengan defectos. |
+  > | `L57-L58`| `      - name: 11. Nivel 2 - Pruebas de Integración (API Contracts & SQLite en Memoria)`<br>`        run: uv run pytest tests/integration` | **Cuerpo de la Pirámide:** Valida los contratos JSON de la API REST y la persistencia relacional SQLite en memoria sin tocar el disco productivo. |
+  > | `L60-L61`| `      - name: 12. Nivel 3 - Pruebas Extremo a Extremo con Playwright (User Journey)`<br>`        run: uv run pytest tests/e2e` | **Cúspide de la Pirámide:** Lanza la aplicación y automatiza la interacción del usuario en Chromium headless, validando el ciclo de vida completo en pantalla. |
+  > | `L63-L64`| `      - name: 13. Pruebas No Funcionales y Regresión (Rendimiento, Seguridad, Privacidad)`<br>`        run: uv run pytest tests/non_functional` | **Certificación de Requisitos No Funcionales:** Evalúa los benchmarks de microsegundos ($\le 0.5$ ms en combate, $\le 50$ ms en API) y controles de seguridad/privacidad para blindar el sistema contra regresiones."*
